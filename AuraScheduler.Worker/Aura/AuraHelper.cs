@@ -64,7 +64,6 @@ namespace AuraScheduler.Worker.Aura
                 // Traverse all LED's
                 foreach (IAuraRgbLight light in dev.Lights)
                 {
-                    // Set all LED's to blue
                     light.Red = c.R;
                     light.Blue = c.B;
                     light.Green = c.G;
