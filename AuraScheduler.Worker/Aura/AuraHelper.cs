@@ -14,7 +14,7 @@ namespace AuraScheduler.Worker.Aura
         private IAuraSdk2 _sdk;
         private IAuraSyncDeviceCollection _devices;
 
-        private bool _sdkHasControl = false;
+        public bool HasControl { get; private set; }
 
         internal enum AuraDeviceType : uint
         {
@@ -47,12 +47,12 @@ namespace AuraScheduler.Worker.Aura
 
         public void TakeControl()
         {
-            if (!_sdkHasControl)
+            if (!HasControl)
             {
                 // Acquire control
                 _sdk.SwitchMode();
 
-                _sdkHasControl = true;
+                HasControl = true;
             }
         }
 
@@ -77,10 +77,10 @@ namespace AuraScheduler.Worker.Aura
 
         public void ReleaseControl()
         {
-            if (_sdkHasControl)
+            if (HasControl)
             {
                 _sdk.ReleaseControl(0);
-                _sdkHasControl = false;
+                HasControl = false;
             }
         }
     }
