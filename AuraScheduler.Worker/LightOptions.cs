@@ -3,6 +3,13 @@
 
 namespace AuraScheduler.Worker
 {
+    public enum LightMode
+    {
+        On,
+        Off,
+        Schedule
+    }
+
     public class LightOptions
     {
         public class LEDSchedule
@@ -15,28 +22,41 @@ namespace AuraScheduler.Worker
 
         public const string SectionName = nameof(LightOptions);
 
-        public bool LightsOn { get; set; }
+        public LightMode LightMode { get; set; }
 
-        public bool ScheduleEnabled { get; set; }
+        public bool ScheduleEnabled => LightMode == LightMode.Schedule;
 
         public LEDSchedule Schedule { get; set; } = new LEDSchedule();
 
         public bool ShouldLightsBeOn(TimeOnly timeToCheck)
         {
-            if (ScheduleEnabled)
+            bool lightsOn;
+
+            switch (LightMode)
             {
-                if (Schedule.LightsOn < Schedule.LightsOff)
-                    return Schedule.LightsOn <= timeToCheck && Schedule.LightsOff >= timeToCheck;
-                else
-                    return Schedule.LightsOff <= timeToCheck && Schedule.LightsOn <= timeToCheck;
+                case LightMode.On:
+                    lightsOn = true;
+                    break;
+                case LightMode.Off:
+                    lightsOn = false;
+                    break;
+                case LightMode.Schedule:
+                    if (Schedule.LightsOn < Schedule.LightsOff)
+                        lightsOn = Schedule.LightsOn <= timeToCheck && Schedule.LightsOff >= timeToCheck;
+                    else
+                        lightsOn = Schedule.LightsOff <= timeToCheck && Schedule.LightsOn <= timeToCheck;
+                    break;
+                default:
+                    lightsOn = false;
+                    break;
             }
 
-            return LightsOn;
+            return lightsOn;
         }
 
         public double SecondsUntilNextScheduledTime(TimeOnly fromTime)
         {
-            if (ScheduleEnabled)
+            if (LightMode == LightMode.Schedule)
             {
                 if (Schedule.LightsOn > fromTime)
                     return (Schedule.LightsOn - fromTime).TotalSeconds;

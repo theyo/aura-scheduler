@@ -7,8 +7,7 @@ namespace AuraScheduler.Worker.Tests
         {
             return new LightOptions()
             {
-                LightsOn = true,
-                ScheduleEnabled = true,
+                LightMode = LightMode.Schedule,
                 Schedule = new LightOptions.LEDSchedule()
                 {
                     LightsOn = new TimeOnly(7, 0, 0),
@@ -21,8 +20,7 @@ namespace AuraScheduler.Worker.Tests
         public void ShouldLightsBeOn_WhenLightsOffAndScheduleOff_ReturnsFalse()
         {
             var lightOptions = GetDefaultOptions();
-            lightOptions.ScheduleEnabled = false;
-            lightOptions.LightsOn = false;
+            lightOptions.LightMode = LightMode.Off;
 
             var shouldLightsBeOn = lightOptions.ShouldLightsBeOn(new TimeOnly(7, 30, 0));
 
@@ -33,7 +31,7 @@ namespace AuraScheduler.Worker.Tests
         public void ShouldLightsBeOn_WhenLightsOnAndScheduleOff_ReturnsTrue()
         {
             var lightOptions = GetDefaultOptions();
-            lightOptions.ScheduleEnabled = false;
+            lightOptions.LightMode = LightMode.On;
 
             var shouldLightsBeOn = lightOptions.ShouldLightsBeOn(new TimeOnly(7, 30, 0));
 
