@@ -16,6 +16,7 @@ namespace AuraScheduler.Worker
 
         private readonly AuraHelper _auraHelper;
 
+        private double _countDownReset = 0;
         private double _countDown = 0;
 
         public AuraScheduleWorker(ILogger<AuraScheduleWorker> logger, IOptionsMonitor<LightOptions> optionsMonitor)
@@ -30,7 +31,6 @@ namespace AuraScheduler.Worker
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-
             CheckAndSetLights();
 
             _countDown = _lightOptionsMonitor.CurrentValue.SecondsUntilNextScheduledTime(TimeOnly.FromDateTime(DateTime.Now));
@@ -41,6 +41,11 @@ namespace AuraScheduler.Worker
             {
                 while (!stoppingToken.IsCancellationRequested)
                 {
+                    if (_countDownReset-- <= 0)
+                    {
+                        UpdateCountdown();
+                    }
+
                     if (_lightOptionsMonitor.CurrentValue.ScheduleEnabled && _countDown-- <= 0)
                     {
                         CheckAndSetLights();
@@ -72,7 +77,8 @@ namespace AuraScheduler.Worker
 
                 Environment.Exit(1);
             }
-            finally {
+            finally
+            {
                 // always release when the program ends
                 _logger.LogInformation("Program shutting down, releasing control");
 
@@ -113,11 +119,17 @@ namespace AuraScheduler.Worker
 
             if (_lightOptionsMonitor.CurrentValue.ScheduleEnabled)
             {
-                _countDown = _lightOptionsMonitor.CurrentValue.SecondsUntilNextScheduledTime(TimeOnly.FromDateTime(DateTime.Now));
+                UpdateCountdown();
                 _logger.LogDebug("New Countdown: {countdown}", _countDown);
             }
 
             CheckAndSetLights();
+        }
+
+        private void UpdateCountdown()
+        {
+            _countDown = _lightOptionsMonitor.CurrentValue.SecondsUntilNextScheduledTime(TimeOnly.FromDateTime(DateTime.Now));
+            _countDownReset = 5;
         }
     }
 }

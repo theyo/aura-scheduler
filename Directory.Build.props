@@ -1,0 +1,11 @@
+<Project>
+    <PropertyGroup>
+        <Authors>Jimmie Houts</Authors>
+        <Company>TheYo</Company>
+        <Copyright>Copyright © 2023</Copyright>
+		<VersionSuffix>0.0.1</VersionSuffix>
+		<AssemblyVersion>$(VersionSuffix)</AssemblyVersion>
+		<Version>$(VersionSuffix)</Version>
+		<Deterministic>false</Deterministic>
+    </PropertyGroup>
+</Project>
