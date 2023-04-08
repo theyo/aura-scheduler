@@ -1,0 +1,11 @@
+<Configuration>
+  <MappedFolders>
+    <MappedFolder>
+      <HostFolder>..\</HostFolder>
+      <SandboxFolder>C:\source</SandboxFolder>
+    </MappedFolder>
+  </MappedFolders>
+  <LogonCommand>
+    <Command>C:\source\InstallerSandboxStart.cmd</Command>
+  </LogonCommand>
+</Configuration>

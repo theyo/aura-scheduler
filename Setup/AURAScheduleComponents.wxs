@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+	<Fragment>
+		<ComponentGroup Id="AURASchedulerServiceComponents" Directory="INSTALLFOLDER">
+			<Component>
+				<File Source="AuraScheduler.Worker.exe" />
+				<File Source="appsettings.json" />
+				<File Source="DefaultLightSettings.json">
+					<CopyFile Id="SETTINGSFILE" DestinationDirectory="APPDATAFOLDER" DestinationName="LightSettings.json" />
+				</File>
+				<ServiceInstall Name="AURA Scheduler Service" DisplayName="AURA Scheduler" Type="ownProcess" Start="auto" ErrorControl="normal" Description="Controls Asus AURA on a schedule" />
+				<ServiceControl Name="AURA Scheduler Service" Start="install" Stop="both" Remove="uninstall" />
+			</Component>
+		</ComponentGroup>
+	</Fragment>
+</Wix>

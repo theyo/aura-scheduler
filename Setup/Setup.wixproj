@@ -1,0 +1,18 @@
+﻿<Project Sdk="WixToolset.Sdk/4.0.0">
+  <PropertyGroup>
+    <BuildVersion>0</BuildVersion>
+    <DefineConstants>Version=$(BuildVersion)</DefineConstants>
+    <OutputName>AURAScheduler.$(MSBuildProjectName)</OutputName>
+  </PropertyGroup>
+  <!--<Target Name="BeforeBuild">
+    <Exec Command="dotnet publish ..\AuraScheduler.Worker\AuraScheduler.Worker.csproj -c $(Configuration)" />
+    <PropertyGroup>
+      <LinkerBaseInputPaths>..\AuraScheduler.Worker\bin\$(Configuration)\net7.0\win-x64\publish</LinkerBaseInputPaths>
+      <DefineConstants>BasePath=..\AuraScheduler.Worker\bin\$(Configuration)\net7.0\win-x64\publish</DefineConstants>
+    </PropertyGroup>
+    <HeatDirectory OutputFile="AURASchedulerWorkerComponent.wxs" DirectoryRefId="INSTALLFOLDER" ComponentGroupName="AURASchedulerWorker_Project" SuppressCom="true" Directory="..\AuraScheduler.Worker\bin\$(Configuration)\net7.0\win-x64\publish" SuppressFragments="true" SuppressRegistry="true" SuppressRootDirectory="true" AutoGenerateGuids="false" GenerateGuidsNow="true" ToolPath="$(WixToolPath)" PreprocessorVariable="var.BasePath" Transforms="RemovePdbs.xslt" />
+  </Target>-->
+  <ItemGroup>
+    <ProjectReference Include="..\AuraScheduler.Worker\AuraScheduler.Worker.csproj" publish="true" />
+  </ItemGroup>
+</Project>
