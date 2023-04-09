@@ -1,7 +1,7 @@
 <Configuration>
   <MappedFolders>
     <MappedFolder>
-      <HostFolder>..\</HostFolder>
+      <HostFolder>D:\src\theyo\aura-scheduler</HostFolder>
       <SandboxFolder>C:\source</SandboxFolder>
     </MappedFolder>
   </MappedFolders>
