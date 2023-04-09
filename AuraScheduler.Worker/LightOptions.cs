@@ -1,6 +1,3 @@
-//using RGB.NET.Core;
-//using RGB.NET.Devices.Asus;
-
 namespace AuraScheduler.Worker
 {
     public enum LightMode
