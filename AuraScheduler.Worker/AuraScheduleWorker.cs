@@ -4,9 +4,6 @@ using AuraScheduler.Worker.Aura;
 
 using Microsoft.Extensions.Options;
 
-//using RGB.NET.Core;
-//using RGB.NET.Devices.Asus;
-
 namespace AuraScheduler.Worker
 {
     public class AuraScheduleWorker : BackgroundService
