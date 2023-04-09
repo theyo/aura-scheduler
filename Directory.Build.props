@@ -3,9 +3,10 @@
         <Authors>Jimmie Houts</Authors>
         <Company>TheYo</Company>
         <Copyright>Copyright © 2023</Copyright>
-		<VersionSuffix>0.0.1</VersionSuffix>
+		<VersionSuffix>0.0.3</VersionSuffix>
 		<AssemblyVersion>$(VersionSuffix)</AssemblyVersion>
 		<Version>$(VersionSuffix)</Version>
+		<BuildVersion>$(VersionSuffix)</BuildVersion>
 		<Deterministic>false</Deterministic>
     </PropertyGroup>
 </Project>

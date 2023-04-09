@@ -2,6 +2,8 @@
 	<Package Name="AURA Scheduler" Manufacturer="TheYo" Version="$(Version)" UpgradeCode="264899C9-951A-4545-9D88-DAB9E2E95FC8" Scope="perMachine">
 		<MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)" />
 
+		<Property Id="ARPPRODUCTICON" Value="worker.exe" />
+
 		<MediaTemplate EmbedCab="yes"/>
 
 		<Feature Id="Main" Title="AURA Scheduler">

@@ -12,5 +12,7 @@
 				<ServiceControl Name="AURA Scheduler Service" Start="install" Stop="both" Remove="uninstall" />
 			</Component>
 		</ComponentGroup>
+
+		<Icon Id="worker.exe" SourceFile="..\icon.ico"/>
 	</Fragment>
 </Wix>
