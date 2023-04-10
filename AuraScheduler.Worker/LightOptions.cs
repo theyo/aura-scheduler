@@ -19,7 +19,7 @@ namespace AuraScheduler.Worker
 
         public const string SectionName = nameof(LightOptions);
 
-        public LightMode LightMode { get; set; }
+        public LightMode LightMode { get; set; } = LightMode.Schedule;
 
         public bool ScheduleEnabled => LightMode == LightMode.Schedule;
 
