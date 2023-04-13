@@ -1,0 +1,136 @@
+﻿<mah:MetroWindow x:Class="AuraScheduler.UI.MainWindow"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                 xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                 xmlns:local="clr-namespace:AuraScheduler.UI"
+                 xmlns:worker="clr-namespace:AuraScheduler.Worker;assembly=AuraScheduler.Worker"
+                 mc:Ignorable="d"
+                 Title="AURA Scheduler"
+                 Height="400"
+                 Width="300"
+                 Icon="icon.ico"
+                 ShowIconOnTitleBar="True"
+                 WindowStartupLocation="CenterScreen"
+                 d:DataContext="{d:DesignInstance local:SettingsViewModelDesignTime, IsDesignTimeCreatable=True}"
+                 Background="{DynamicResource MahApps.Brushes.ThemeBackground}">
+
+    <mah:MetroWindow.Resources>
+        <Thickness x:Key="ControlMargin">0 5 0 0</Thickness>
+        <Thickness x:Key="TabContentMargin">20 20 20 20</Thickness>
+        <local:TimeOnlyToDateTimeConverter x:Key="timeOnlyConverter"/>
+        <local:EnumToStringConverter x:Key="enumToStringConverter"/>
+    </mah:MetroWindow.Resources>
+
+    <mah:MetroTabControl Style="{DynamicResource MahApps.Styles.TabControl.Animated}">
+        <mah:MetroTabItem Name="infoTab" Header="Info">
+            <mah:MetroTabItem.Content>
+                <Grid Margin="{StaticResource TabContentMargin}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row ="0"
+                                Grid.Column="0">
+
+                        <Label Margin="{StaticResource ControlMargin}" Content="Mode" />
+                        <TextBlock Margin="{StaticResource ControlMargin}" Text="{Binding LightMode, Converter={StaticResource enumToStringConverter}}" />
+
+                        <GroupBox Margin="0 10 0 0"
+                                  Header="Schedule"
+                                  MinWidth="200"
+                                  Padding="10"
+                                  UseLayoutRounding="True"
+                                  Visibility="{Binding ScheduleEnabled, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <AdornerDecorator>
+                                <StackPanel>
+                                    <Label Margin="{StaticResource ControlMargin}" Content="Lights On" />
+                                    <TextBlock Margin="{StaticResource ControlMargin}"
+                                               Text="{Binding ScheduleLightsOn}"/>
+
+                                    <Label Margin="{StaticResource ControlMargin}" Content="Lights Off" />
+                                    <TextBlock Margin="{StaticResource ControlMargin}"
+                                               Text="{Binding ScheduleLightsOff}"/>
+
+                                </StackPanel>
+                            </AdornerDecorator>
+                        </GroupBox>
+                    </StackPanel>
+                </Grid>
+            </mah:MetroTabItem.Content>
+        </mah:MetroTabItem>
+        <mah:MetroTabItem Name="settingsTab" Header="Settings">
+            <mah:MetroTabItem.Content>
+                <Grid Margin="{StaticResource TabContentMargin}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="50"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row ="0"
+                                Grid.Column="0">
+
+                        <Label Margin="{StaticResource ControlMargin}" Content="Mode" />
+                        <ComboBox Grid.Row="0"
+                                  Grid.Column="1"
+                                  MinWidth="200"
+                                  Margin="{StaticResource ControlMargin}"
+                                  ItemsSource="{Binding Source={local:EnumBindingSource {x:Type worker:LightMode }}, Mode=OneTime}"
+                                  SelectedItem="{Binding LightMode,Mode=TwoWay}">
+                        </ComboBox>
+
+
+                        <GroupBox Margin="0 10 0 0"
+                                  Header="Schedule"
+                                  MinWidth="200"
+                                  Padding="10"
+                                  UseLayoutRounding="True"
+                                  Visibility="{Binding ScheduleEnabled, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <AdornerDecorator>
+                                <StackPanel>
+                                    <Label Margin="{StaticResource ControlMargin}" Content="Lights On" />
+                                    <mah:TimePicker Margin="{StaticResource ControlMargin}"
+                                                    mah:TextBoxHelper.AutoWatermark="True"
+                                                    PickerVisibility="All"
+                                                    SelectedDateTime="{Binding ScheduleLightsOn, Converter={StaticResource timeOnlyConverter}, Mode=TwoWay, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
+                                                    SelectedTimeFormat="Long" />
+
+                                    <Label Margin="{StaticResource ControlMargin}" Content="Lights Off" />
+                                    <mah:TimePicker Margin="{StaticResource ControlMargin}"
+                                                    mah:TextBoxHelper.AutoWatermark="True"
+                                                    PickerVisibility="All"
+                                                    SelectedDateTime="{Binding ScheduleLightsOff, Converter={StaticResource timeOnlyConverter}, Mode=TwoWay, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
+                                                    SelectedTimeFormat="Short" />
+
+                                </StackPanel>
+                            </AdornerDecorator>
+                        </GroupBox>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1"
+                                Grid.Column="0"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Center"
+                                Margin="10"
+                                Visibility="{Binding SettingsViewModel.IsDirty, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Button Content="Save" MinWidth="100" Command="{Binding SettingsViewModel.SaveChangesCommand}">
+                        </Button>
+                        <Button Content="Cancel" MinWidth="100" Margin="10 0 0 0" Command="{Binding SettingsViewModel.CancelChangesCommand}">
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </mah:MetroTabItem.Content>
+        </mah:MetroTabItem>
+    </mah:MetroTabControl>
+
+
+</mah:MetroWindow>

@@ -2,6 +2,7 @@
   <PropertyGroup>
     <DefineConstants>Version=$(BuildVersion)</DefineConstants>
     <OutputName>AURAScheduler.$(MSBuildProjectName)</OutputName>
+    <Platforms>x86;x64</Platforms>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\AuraScheduler.Worker\AuraScheduler.Worker.csproj" publish="true" />

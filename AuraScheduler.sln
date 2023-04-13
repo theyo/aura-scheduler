@@ -18,6 +18,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "root", "root", "{AC9AB885-2
 EndProject
 Project("{B7DD6F7E-DEF8-4E67-B5B7-07EF123DB6F0}") = "Setup", "Setup\Setup.wixproj", "{A06C8C3D-52B6-4265-96F8-1C61EB9BC9DE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuraScheduler.UI", "AuraScheduler.UI\AuraScheduler.UI.csproj", "{9C45A10E-7618-46E2-A273-992B2315CA99}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -35,6 +37,10 @@ Global
 		{A06C8C3D-52B6-4265-96F8-1C61EB9BC9DE}.Debug|x64.ActiveCfg = Debug|x64
 		{A06C8C3D-52B6-4265-96F8-1C61EB9BC9DE}.Release|x64.ActiveCfg = Release|x64
 		{A06C8C3D-52B6-4265-96F8-1C61EB9BC9DE}.Release|x64.Build.0 = Release|x64
+		{9C45A10E-7618-46E2-A273-992B2315CA99}.Debug|x64.ActiveCfg = Debug|x64
+		{9C45A10E-7618-46E2-A273-992B2315CA99}.Debug|x64.Build.0 = Debug|x64
+		{9C45A10E-7618-46E2-A273-992B2315CA99}.Release|x64.ActiveCfg = Release|x64
+		{9C45A10E-7618-46E2-A273-992B2315CA99}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
