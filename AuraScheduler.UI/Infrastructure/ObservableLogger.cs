@@ -35,6 +35,7 @@ namespace AuraScheduler.UI.Infrastructure
             ScopeProvider = externalScopeProvider;
             Collection = collection;
 
+            //Ensures updates to the collection happen on the UI thread see https://stackoverflow.com/a/33343937/83381
             BindingOperations.EnableCollectionSynchronization(Collection, _lock);
         }
 
