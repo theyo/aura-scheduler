@@ -1,7 +1,9 @@
-﻿using System.Windows;
+﻿using System.IO;
+using System.Reflection;
+using System.Windows;
 
-using AuraScheduler.Worker;
 using AuraScheduler.UI.Infrastructure;
+using AuraScheduler.Worker;
 
 using ControlzEx.Theming;
 
@@ -10,8 +12,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-using Windows.UI.ApplicationSettings;
-
 namespace AuraScheduler.UI
 {
     /// <summary>
@@ -19,23 +19,37 @@ namespace AuraScheduler.UI
     /// </summary>
     public partial class App : Application
     {
-        private IHost _host;
+        private const string LightSettingsFileName = "LightSettings.json";
+
+        private readonly IHost _host;
 
         public App(string[]? args = null)
         {
 
             var builder = Host.CreateApplicationBuilder(args);
 
-#if !DEBUG
-            var appDataRoot = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-            var settingsPath = Path.Combine(appDataRoot, "TheYo", "AURA Scheduler", "LightSettings.json");
+            string settingsPath;
+
+            if (builder.Environment.IsProduction())
+            {
+                var company = typeof(App).Assembly.GetCustomAttribute<AssemblyCompanyAttribute>()!.Company;
+                var product = typeof(App).Assembly.GetCustomAttribute<AssemblyProductAttribute>()!.Product;
+                var appDataRoot = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+
+                settingsPath = Path.Combine(appDataRoot, company, product, LightSettingsFileName);
+            }
+            else
+            {
+                settingsPath = LightSettingsFileName;
+            }
+
 
             builder.Configuration.AddJsonFile(settingsPath, true, true);
-#endif
 
             builder.Services.Configure<LightOptions>(builder.Configuration.GetSection(LightOptions.SectionName));
             builder.Services.AddHostedService<AuraScheduleWorker>();
 
+            builder.Services.AddSingleton<ISettingsFileProvider>(x => new SettingsFileProvider(x.GetRequiredService<ILogger<SettingsFileProvider>>(), settingsPath));
             builder.Services.AddSingleton<MainWindow>();
 
             builder.Logging.ClearProviders();

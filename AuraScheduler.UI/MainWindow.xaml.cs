@@ -2,6 +2,7 @@
 using System.ComponentModel;
 
 using AuraScheduler.UI.Infrastructure;
+using AuraScheduler.UI.ViewModels.DesignTime;
 using AuraScheduler.Worker;
 
 using Microsoft.Extensions.Logging;
@@ -18,9 +19,9 @@ namespace AuraScheduler.UI
 
         public SettingsViewModel SettingsViewModel { get; private set; }
 
-        public MainWindow(IOptionsMonitor<LightOptions> optionsMonitor, ILoggerProvider logProvider)
+        public MainWindow(IOptionsMonitor<LightOptions> optionsMonitor, ILoggerProvider logProvider, ISettingsFileProvider settingsFileProvider)
         {
-            SettingsViewModel = new SettingsViewModel(optionsMonitor);
+            SettingsViewModel = new SettingsViewModel(optionsMonitor, settingsFileProvider);
 
             DataContext = this;
 
@@ -31,12 +32,5 @@ namespace AuraScheduler.UI
 
             InitializeComponent();
         }
-    }
-
-    public partial class MainWindowViewModelDesignTime
-    {
-        public ObservableCollection<string>? LogEntries { get; } = new(new() { "App Started!", "Something else", "Uh Oh! Something bad happened" });
-
-        public SettingsViewModel SettingsViewModel { get; private set; } = new SettingsViewModelDesignTime();
     }
 }

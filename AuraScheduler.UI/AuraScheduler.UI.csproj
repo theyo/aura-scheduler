@@ -14,13 +14,24 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <None Remove="appsettings.json" />
-	  <None Remove="icon.ico" />
+		<None Remove="icon.ico" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Content Include="appsettings.json">
+	  <Content Update="appsettings.Development.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	    <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+	  </Content>
+	  <Content Update="appsettings.json">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		  <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+	  </Content>
+	  <Content Include="LightSettings.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 	  </Content>
 	  <Content Include="icon.ico">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -35,7 +46,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\AuraScheduler.Worker\AuraScheduler.Worker.csproj" />
+		<ProjectReference Include="..\AuraScheduler.Worker\AuraScheduler.Worker.csproj" publish="true" />
 	</ItemGroup>
 
 </Project>

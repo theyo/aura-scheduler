@@ -5,53 +5,14 @@ using AuraScheduler.Worker;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using AuraScheduler.UI.Infrastructure;
 
 namespace AuraScheduler.UI
 {
-    public class MockOptionsMonitor<T> : IOptionsMonitor<T> where T : new()
-    {
-        private Action<T, string>? _listener;
-
-        public T CurrentValue { get; } = new T();
-
-        public T Get(string? name)
-        {
-            return CurrentValue;
-        }
-
-        public MockOptionsMonitor(T instance)
-        {
-            CurrentValue = instance;
-        }
-
-        public IDisposable? OnChange(Action<T, string?> listener)
-        {
-            _listener = listener;
-            return null;
-        }
-    }
-
-    public partial class SettingsViewModelDesignTime : SettingsViewModel
-    {
-
-        public static LightOptions DefaultOptions = new()
-        {
-            LightMode = LightMode.Schedule,
-            Schedule = new LightOptions.LEDSchedule()
-            {
-                LightsOn = new TimeOnly(7, 30, 0),
-                LightsOff = new TimeOnly(21, 30, 0)
-            }
-        };
-
-        public SettingsViewModelDesignTime() :
-            base(new MockOptionsMonitor<LightOptions>(DefaultOptions))
-        { }
-    }
-
     public partial class SettingsViewModel : ObservableObject
     {
-        readonly IOptionsMonitor<LightOptions> _optionsMonitor;
+        private readonly IOptionsMonitor<LightOptions> _optionsMonitor;
+        private readonly ISettingsFileProvider _settingsFileProvider;
 
         private bool _skipMarkDirty = false;
 
@@ -63,7 +24,7 @@ namespace AuraScheduler.UI
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(ScheduleEnabled))]
-        private LightMode lightMode;
+        private LightMode mode;
 
         [ObservableProperty]
         private TimeOnly scheduleLightsOn;
@@ -71,15 +32,18 @@ namespace AuraScheduler.UI
         [ObservableProperty]
         private TimeOnly scheduleLightsOff;
 
-        public bool ScheduleEnabled { get => LightMode == LightMode.Schedule; }
+
+        public bool ScheduleEnabled { get => Mode == LightMode.Schedule; }
 
         public IEnumerable<LightMode> LightModes { get; private set; }
 
-        public SettingsViewModel(IOptionsMonitor<LightOptions> optionsMonitor)
+        public SettingsViewModel(IOptionsMonitor<LightOptions> optionsMonitor, ISettingsFileProvider settingsFileProvider)
         {
             ArgumentNullException.ThrowIfNull(nameof(optionsMonitor));
+            ArgumentNullException.ThrowIfNull(nameof(settingsFileProvider));
 
             _optionsMonitor = optionsMonitor;
+            _settingsFileProvider = settingsFileProvider;
 
             UpdateOptions(_optionsMonitor.CurrentValue);
 
@@ -98,7 +62,15 @@ namespace AuraScheduler.UI
         [RelayCommand(CanExecute = nameof(CanSaveOrCancel))]
         public void SaveChanges()
         {
-            //IsDirty = false;
+            var options = _optionsMonitor.CurrentValue;
+
+            options.LightMode = Mode;
+            options.Schedule.LightsOn = ScheduleLightsOn;
+            options.Schedule.LightsOff = ScheduleLightsOff;
+
+            _settingsFileProvider.UpdateSettingsFile(options);
+
+            IsDirty = false;
         }
 
         [RelayCommand(CanExecute = nameof(CanSaveOrCancel))]
@@ -112,7 +84,7 @@ namespace AuraScheduler.UI
         {
             _skipMarkDirty = true;
 
-            LightMode = updatedOptions.LightMode;
+            Mode = updatedOptions.LightMode;
             ScheduleLightsOn = updatedOptions.Schedule.LightsOn;
             ScheduleLightsOff = updatedOptions.Schedule.LightsOff;
 

@@ -2,6 +2,7 @@
     <PropertyGroup>
         <Authors>Jimmie Houts</Authors>
         <Company>TheYo</Company>
+		<Product>AURA Scheduler</Product>
         <Copyright>Copyright © 2023</Copyright>
 		<VersionSuffix>0.0.3</VersionSuffix>
 		<AssemblyVersion>$(VersionSuffix)</AssemblyVersion>

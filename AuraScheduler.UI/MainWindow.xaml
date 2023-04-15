@@ -6,6 +6,7 @@
                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                  xmlns:local="clr-namespace:AuraScheduler.UI"
                  xmlns:worker="clr-namespace:AuraScheduler.Worker;assembly=AuraScheduler.Worker"
+                 xmlns:dtime="clr-namespace:AuraScheduler.UI.ViewModels.DesignTime"
                  mc:Ignorable="d"
                  Title="AURA Scheduler"
                  Height="400"
@@ -13,7 +14,7 @@
                  Icon="icon.ico"
                  ShowIconOnTitleBar="True"
                  WindowStartupLocation="CenterScreen"
-                 d:DataContext="{d:DesignInstance local:MainWindowViewModelDesignTime, IsDesignTimeCreatable=True}"
+                 d:DataContext="{d:DesignInstance dtime:MainWindowViewModelDesignTime, IsDesignTimeCreatable=True}"
                  Background="{DynamicResource MahApps.Brushes.ThemeBackground}">
 
     <mah:MetroWindow.Resources>
@@ -45,7 +46,7 @@
                                 DataContext="{Binding SettingsViewModel}">
 
                         <Label Margin="{StaticResource ControlMargin}" Content="Mode" />
-                        <TextBlock Margin="{StaticResource ControlMargin}" Text="{Binding LightMode, Converter={StaticResource enumToStringConverter}}" />
+                        <TextBlock Margin="{StaticResource ControlMargin}" Text="{Binding Mode, Converter={StaticResource enumToStringConverter}}" />
 
                         <GroupBox Margin="0 10 0 0"
                                   Header="Schedule"
@@ -104,7 +105,7 @@
                                   MinWidth="200"
                                   Margin="{StaticResource ControlMargin}"
                                   ItemsSource="{Binding Source={local:EnumBindingSource {x:Type worker:LightMode }}, Mode=OneTime}"
-                                  SelectedItem="{Binding LightMode,Mode=TwoWay}">
+                                  SelectedItem="{Binding Mode,Mode=TwoWay}">
                         </ComboBox>
 
 
