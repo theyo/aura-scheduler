@@ -9,11 +9,11 @@
                  mc:Ignorable="d"
                  Title="AURA Scheduler"
                  Height="400"
-                 Width="300"
+                 Width="500"
                  Icon="icon.ico"
                  ShowIconOnTitleBar="True"
                  WindowStartupLocation="CenterScreen"
-                 d:DataContext="{d:DesignInstance local:SettingsViewModelDesignTime, IsDesignTimeCreatable=True}"
+                 d:DataContext="{d:DesignInstance local:MainWindowViewModelDesignTime, IsDesignTimeCreatable=True}"
                  Background="{DynamicResource MahApps.Brushes.ThemeBackground}">
 
     <mah:MetroWindow.Resources>
@@ -21,6 +21,9 @@
         <Thickness x:Key="TabContentMargin">20 20 20 20</Thickness>
         <local:TimeOnlyToDateTimeConverter x:Key="timeOnlyConverter"/>
         <local:EnumToStringConverter x:Key="enumToStringConverter"/>
+        <DataTemplate x:Key="LogEntryTemplate">
+            <TextBlock Text="{Binding .}" ></TextBlock>
+        </DataTemplate>
     </mah:MetroWindow.Resources>
 
     <mah:MetroTabControl Style="{DynamicResource MahApps.Styles.TabControl.Animated}">
@@ -28,6 +31,7 @@
             <mah:MetroTabItem.Content>
                 <Grid Margin="{StaticResource TabContentMargin}">
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="210"/>
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
 
@@ -36,7 +40,9 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Grid.Row ="0"
-                                Grid.Column="0">
+                                Grid.Column="0"
+                                Margin="0 0 10 0"
+                                DataContext="{Binding SettingsViewModel}">
 
                         <Label Margin="{StaticResource ControlMargin}" Content="Mode" />
                         <TextBlock Margin="{StaticResource ControlMargin}" Text="{Binding LightMode, Converter={StaticResource enumToStringConverter}}" />
@@ -61,12 +67,25 @@
                             </AdornerDecorator>
                         </GroupBox>
                     </StackPanel>
+
+                    <GroupBox Grid.Row="0"
+                              Grid.Column="1"
+                              Header="Logs"
+                              Padding="10"
+                              UseLayoutRounding="True">
+                        <AdornerDecorator>
+                            <ListBox ItemsSource="{Binding LogEntries}"
+                                     ItemTemplate="{StaticResource LogEntryTemplate}">
+                            </ListBox>
+                        </AdornerDecorator>
+                    </GroupBox>
                 </Grid>
             </mah:MetroTabItem.Content>
         </mah:MetroTabItem>
         <mah:MetroTabItem Name="settingsTab" Header="Settings">
             <mah:MetroTabItem.Content>
-                <Grid Margin="{StaticResource TabContentMargin}">
+                <Grid Margin="{StaticResource TabContentMargin}"
+                      DataContext="{Binding SettingsViewModel}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
@@ -121,10 +140,10 @@
                                 Orientation="Horizontal"
                                 HorizontalAlignment="Center"
                                 Margin="10"
-                                Visibility="{Binding SettingsViewModel.IsDirty, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <Button Content="Save" MinWidth="100" Command="{Binding SettingsViewModel.SaveChangesCommand}">
+                                Visibility="{Binding IsDirty, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Button Content="Save" MinWidth="100" Command="{Binding SaveChangesCommand}">
                         </Button>
-                        <Button Content="Cancel" MinWidth="100" Margin="10 0 0 0" Command="{Binding SettingsViewModel.CancelChangesCommand}">
+                        <Button Content="Cancel" MinWidth="100" Margin="10 0 0 0" Command="{Binding CancelChangesCommand}">
                         </Button>
                     </StackPanel>
                 </Grid>

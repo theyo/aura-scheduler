@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 
 using AuraScheduler.Worker;
+using AuraScheduler.UI.Infrastructure;
 
 using ControlzEx.Theming;
 
@@ -22,6 +23,7 @@ namespace AuraScheduler.UI
 
         public App(string[]? args = null)
         {
+
             var builder = Host.CreateApplicationBuilder(args);
 
 #if !DEBUG
@@ -36,9 +38,20 @@ namespace AuraScheduler.UI
 
             builder.Services.AddSingleton<MainWindow>();
 
-            builder.Logging.AddConsole();
+            builder.Logging.ClearProviders();
+
+            builder.Logging.AddObservableLogger();
 
             _host = builder.Build();
+
+
+            AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
+            {
+                var loggerFactory = _host.Services.GetRequiredService<ILoggerFactory>();
+                var logger = loggerFactory.CreateLogger<App>();
+
+                logger.LogError(args.ExceptionObject as Exception, "An unhandled error occurred");
+            };
         }
 
         protected override void OnStartup(StartupEventArgs e)
