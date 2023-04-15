@@ -1,11 +1,10 @@
 ﻿using System.ComponentModel;
+using Microsoft.Extensions.Options;
 
 using AuraScheduler.Worker;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-
-using Microsoft.Extensions.Options;
 
 namespace AuraScheduler.UI
 {
@@ -34,6 +33,7 @@ namespace AuraScheduler.UI
 
     public partial class SettingsViewModelDesignTime : SettingsViewModel
     {
+
         public static LightOptions DefaultOptions = new()
         {
             LightMode = LightMode.Schedule,
@@ -56,6 +56,8 @@ namespace AuraScheduler.UI
         private bool _skipMarkDirty = false;
 
         [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(SaveChangesCommand))]
+        [NotifyCanExecuteChangedFor(nameof(CancelChangesCommand))]
         bool isDirty = false;
 
 
