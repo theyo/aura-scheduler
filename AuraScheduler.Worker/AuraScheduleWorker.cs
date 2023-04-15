@@ -28,6 +28,8 @@ namespace AuraScheduler.Worker
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            _logger.LogInformation("Worker starting...");
+
             CheckAndSetLights();
 
             _countDown = _lightOptionsMonitor.CurrentValue.SecondsUntilNextScheduledTime(TimeOnly.FromDateTime(DateTime.Now));
@@ -36,19 +38,41 @@ namespace AuraScheduler.Worker
 
             try
             {
+                _logger.LogInformation("Worker running!");
+
                 while (!stoppingToken.IsCancellationRequested)
                 {
+                    _logger.LogDebug("Checking reset countdown...");
+
                     if (_countDownReset-- <= 0)
                     {
+                        _logger.LogDebug("Updating reset countdown...");
+
                         UpdateCountdown();
+
+                        _logger.LogDebug("Reset countdown updated!");
                     }
+
+                    _logger.LogDebug("Finished checking rest countdown!");
+
 
                     if (_lightOptionsMonitor.CurrentValue.ScheduleEnabled && _countDown-- <= 0)
                     {
+                        _logger.LogDebug("Schedule Enabled and countdown time has passed, checking and setting lights...");
+
                         CheckAndSetLights();
 
+                        _logger.LogDebug("Done checking and setting lights!");
+
+                        _logger.LogDebug("Updating countdown to next scheduled time...");
+
                         _countDown = _lightOptionsMonitor.CurrentValue.SecondsUntilNextScheduledTime(TimeOnly.FromDateTime(DateTime.Now));
+
+                        _logger.LogDebug("Countdown updated!");
+
                     }
+
+                    _logger.LogDebug("Nothing more to do, waiting...");
 
                     await Task.Delay(1000, stoppingToken);
                 }
@@ -77,7 +101,7 @@ namespace AuraScheduler.Worker
             finally
             {
                 // always release when the program ends
-                _logger.LogInformation("Program shutting down, releasing control");
+                _logger.LogInformation("Worker shutting down, releasing control");
 
                 _auraHelper.ReleaseControl();
             }
@@ -101,12 +125,16 @@ namespace AuraScheduler.Worker
                 _logger.LogDebug("Setting color to: {color}", Color.Black);
 
                 _auraHelper.SetLightsToColor(Color.Black);
+
+                _logger.LogDebug("Color set to: {color}", Color.Black);
             }
             else
             {
                 _logger.LogInformation("Lights should be on, releasing control");
 
                 _auraHelper.ReleaseControl();
+
+                _logger.LogDebug("Control released");
             }
         }
 
