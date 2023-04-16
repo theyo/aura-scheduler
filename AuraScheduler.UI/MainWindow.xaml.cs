@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 
 using AuraScheduler.UI.Infrastructure;
 using AuraScheduler.UI.ViewModels.DesignTime;
@@ -19,9 +20,9 @@ namespace AuraScheduler.UI
 
         public SettingsViewModel SettingsViewModel { get; private set; }
 
-        public MainWindow(IOptionsMonitor<LightOptions> optionsMonitor, ILoggerProvider logProvider, ISettingsFileProvider settingsFileProvider)
+        public MainWindow(SettingsViewModel viewModel, ILoggerProvider logProvider)
         {
-            SettingsViewModel = new SettingsViewModel(optionsMonitor, settingsFileProvider);
+            SettingsViewModel = viewModel;
 
             DataContext = this;
 

@@ -6,6 +6,7 @@ using AuraScheduler.Worker;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using AuraScheduler.UI.Infrastructure;
+using Microsoft.Extensions.Logging;
 
 namespace AuraScheduler.UI
 {
@@ -13,6 +14,7 @@ namespace AuraScheduler.UI
     {
         private readonly IOptionsMonitor<LightOptions> _optionsMonitor;
         private readonly ISettingsFileProvider _settingsFileProvider;
+        private readonly ILogger<SettingsViewModel> _logger;
 
         private bool _skipMarkDirty = false;
 
@@ -37,13 +39,14 @@ namespace AuraScheduler.UI
 
         public IEnumerable<LightMode> LightModes { get; private set; }
 
-        public SettingsViewModel(IOptionsMonitor<LightOptions> optionsMonitor, ISettingsFileProvider settingsFileProvider)
+        public SettingsViewModel(IOptionsMonitor<LightOptions> optionsMonitor, ISettingsFileProvider settingsFileProvider, ILogger<SettingsViewModel> logger)
         {
             ArgumentNullException.ThrowIfNull(nameof(optionsMonitor));
             ArgumentNullException.ThrowIfNull(nameof(settingsFileProvider));
 
             _optionsMonitor = optionsMonitor;
             _settingsFileProvider = settingsFileProvider;
+            _logger = logger;
 
             UpdateOptions(_optionsMonitor.CurrentValue);
 
@@ -62,6 +65,7 @@ namespace AuraScheduler.UI
         [RelayCommand(CanExecute = nameof(CanSaveOrCancel))]
         public void SaveChanges()
         {
+            _logger.LogInformation("Saving changes...");
             var options = _optionsMonitor.CurrentValue;
 
             options.LightMode = Mode;
@@ -71,6 +75,7 @@ namespace AuraScheduler.UI
             _settingsFileProvider.UpdateSettingsFile(options);
 
             IsDirty = false;
+            _logger.LogInformation("Changes saved!");
         }
 
         [RelayCommand(CanExecute = nameof(CanSaveOrCancel))]

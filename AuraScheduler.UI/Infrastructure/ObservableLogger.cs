@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
 using System.Windows.Data;
 
 using Microsoft.Extensions.Configuration;
@@ -8,35 +9,27 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Logging.Configuration;
 using Microsoft.Extensions.Logging.Console;
+using Microsoft.VisualBasic;
 
 namespace AuraScheduler.UI.Infrastructure
 {
     public sealed class ObservableLogger : ILogger
     {
-        private static object _lock = new object();
-
+        private readonly ObservableLoggerConfiguration _configuration;
         private readonly string _name;
 
-        internal IExternalScopeProvider? ScopeProvider { get; set; }
-        internal ConsoleFormatter Formatter { get; set; }
+        private ObservableCollection<string> LogEntryCollection { get; }
 
-        private ObservableCollection<string> Collection { get; }
 
         internal ObservableLogger(
             string name,
-            ConsoleFormatter formatter,
-            IExternalScopeProvider externalScopeProvider,
+            ObservableLoggerConfiguration configuration,
             ObservableCollection<string> collection)
         {
-            ArgumentException.ThrowIfNullOrEmpty(name);
+            _name = name ?? string.Empty;
+            _configuration = configuration;
 
-            _name = name;
-            Formatter = formatter;
-            ScopeProvider = externalScopeProvider;
-            Collection = collection;
-
-            //Ensures updates to the collection happen on the UI thread see https://stackoverflow.com/a/33343937/83381
-            BindingOperations.EnableCollectionSynchronization(Collection, _lock);
+            LogEntryCollection = collection;
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
@@ -48,20 +41,20 @@ namespace AuraScheduler.UI.Infrastructure
 
             ArgumentNullException.ThrowIfNull(formatter);
 
-            var message = formatter(state, exception);
+            var message = $"{DateTime.Now} - {logLevel} - {_name.Substring(_name.LastIndexOf(".") + 1)} - {formatter(state, exception)}";
 
-            Collection.Add(message);
+            LogEntryCollection.Add(message);
         }
 
         /// <inheritdoc />
         public bool IsEnabled(LogLevel logLevel)
         {
-            return logLevel != LogLevel.None;
+            return logLevel >= _configuration.LogLevel;
         }
 
 
         /// <inheritdoc />
-        public IDisposable BeginScope<TState>(TState state) where TState : notnull => ScopeProvider?.Push(state) ?? MyNullScope.Instance;
+        public IDisposable BeginScope<TState>(TState state) where TState : notnull => null!;
 
     }
 
@@ -70,22 +63,34 @@ namespace AuraScheduler.UI.Infrastructure
         ObservableCollection<string>? LogEntries { get; }
     }
 
+    public class ObservableLoggerConfiguration
+    {
+        public LogLevel LogLevel { get; set; } = LogLevel.Debug;
+        public int MaxEntriesToKeep { get; set; } = 1024;
+    }
+
     public sealed class ObservableLoggerProvider : ILoggerProvider, IObservableLoggerProvider
     {
-        private readonly IExternalScopeProvider _scopeProvider = MyNullExternalScopeProvider.Instance;
-        private readonly ConsoleFormatter _formatter;
-        private readonly int _maxEntries;
+        private static object _lock = new object();
+
+        private readonly ConcurrentDictionary<string, ObservableLogger> _loggers = new ConcurrentDictionary<string, ObservableLogger>();
+
+        private readonly ObservableLoggerConfiguration _configuration;
+        private ObservableCollection<string> Entries { get; } = new();
 
         public ObservableCollection<string>? LogEntries { get; }
 
-        private ObservableCollection<string> Entries { get; } = new();
+        public ObservableLoggerProvider() : this(new())
+        { }
 
-        public ObservableLoggerProvider(ConsoleFormatter formatter, int maxEntries = 1024)
+        public ObservableLoggerProvider(ObservableLoggerConfiguration configuration)
         {
-            this._maxEntries = maxEntries;
-            _formatter = formatter;
+            _configuration = configuration;
 
             LogEntries = Entries;
+
+            //Ensures updates to the collection happen on the UI thread see https://stackoverflow.com/a/33343937/83381
+            BindingOperations.EnableCollectionSynchronization(LogEntries, _lock);
 
             LogEntries.CollectionChanged += Entries_CollectionChanged;
         }
@@ -94,20 +99,21 @@ namespace AuraScheduler.UI.Infrastructure
         {
             if (e.Action != System.Collections.Specialized.NotifyCollectionChangedAction.Move)
             {
-                while (e.NewItems?.Count > _maxEntries)
+                while (e.NewItems?.Count > _configuration.MaxEntriesToKeep)
                 {
                     e.NewItems.RemoveAt(0);
                 }
             }
         }
 
-        public ILogger CreateLogger(string name)
+        public ILogger CreateLogger(string categoryName)
         {
-            return new ObservableLogger(name, _formatter, _scopeProvider, Entries);
+            return _loggers.GetOrAdd(categoryName, name => new ObservableLogger(name, _configuration, Entries));
         }
 
         public void Dispose()
         {
+            _loggers.Clear();
         }
     }
 
@@ -117,48 +123,9 @@ namespace AuraScheduler.UI.Infrastructure
         {
             builder.AddConfiguration();
 
-            builder.AddSimpleConsole();
-
             builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, ObservableLoggerProvider>());
 
             return builder;
-        }
-    }
-
-    public sealed class MyNullExternalScopeProvider : IExternalScopeProvider
-    {
-        private MyNullExternalScopeProvider()
-        {
-        }
-
-        /// <summary>
-        /// Returns a cached instance of <see cref="MyNullExternalScopeProvider"/>.
-        /// </summary>
-        public static IExternalScopeProvider Instance { get; } = new MyNullExternalScopeProvider();
-
-        /// <inheritdoc />
-        void IExternalScopeProvider.ForEachScope<TState>(Action<object?, TState> callback, TState state)
-        {
-        }
-
-        /// <inheritdoc />
-        IDisposable IExternalScopeProvider.Push(object? state)
-        {
-            return MyNullScope.Instance;
-        }
-    }
-
-    public sealed class MyNullScope : IDisposable
-    {
-        public static MyNullScope Instance { get; } = new MyNullScope();
-
-        private MyNullScope()
-        {
-        }
-
-        /// <inheritdoc />
-        public void Dispose()
-        {
         }
     }
 }

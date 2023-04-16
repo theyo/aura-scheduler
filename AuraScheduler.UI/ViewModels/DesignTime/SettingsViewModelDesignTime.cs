@@ -16,7 +16,7 @@ namespace AuraScheduler.UI.ViewModels.DesignTime
         };
 
         public SettingsViewModelDesignTime() :
-            base(new MockOptionsMonitor<LightOptions>(DefaultOptions), new MockSettingsFileProvider())
+            base(new MockOptionsMonitor<LightOptions>(DefaultOptions), new MockSettingsFileProvider(), null!)
         { }
     }
 }

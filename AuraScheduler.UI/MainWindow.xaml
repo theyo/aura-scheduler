@@ -9,10 +9,11 @@
                  xmlns:dtime="clr-namespace:AuraScheduler.UI.ViewModels.DesignTime"
                  mc:Ignorable="d"
                  Title="AURA Scheduler"
-                 Height="400"
-                 Width="500"
+                 Height="405"
+                 Width="650"
                  Icon="icon.ico"
                  ShowIconOnTitleBar="True"
+                 ResizeMode="NoResize"
                  WindowStartupLocation="CenterScreen"
                  d:DataContext="{d:DesignInstance dtime:MainWindowViewModelDesignTime, IsDesignTimeCreatable=True}"
                  Background="{DynamicResource MahApps.Brushes.ThemeBackground}">
@@ -22,13 +23,14 @@
         <Thickness x:Key="TabContentMargin">20 20 20 20</Thickness>
         <local:TimeOnlyToDateTimeConverter x:Key="timeOnlyConverter"/>
         <local:EnumToStringConverter x:Key="enumToStringConverter"/>
+        <local:BoolNegationConverter x:Key="boolNegationConverter"/>
         <DataTemplate x:Key="LogEntryTemplate">
             <TextBlock Text="{Binding .}" ></TextBlock>
         </DataTemplate>
     </mah:MetroWindow.Resources>
 
     <mah:MetroTabControl Style="{DynamicResource MahApps.Styles.TabControl.Animated}">
-        <mah:MetroTabItem Name="infoTab" Header="Info">
+        <mah:MetroTabItem Name="infoTab" Header="Info" IsEnabled="{Binding SettingsViewModel.IsDirty, Converter={StaticResource boolNegationConverter}}">
             <mah:MetroTabItem.Content>
                 <Grid Margin="{StaticResource TabContentMargin}">
                     <Grid.ColumnDefinitions>
@@ -45,11 +47,13 @@
                                 Margin="0 0 10 0"
                                 DataContext="{Binding SettingsViewModel}">
 
-                        <Label Margin="{StaticResource ControlMargin}" Content="Mode" />
-                        <TextBlock Margin="{StaticResource ControlMargin}" Text="{Binding Mode, Converter={StaticResource enumToStringConverter}}" />
+                        <StackPanel Orientation="Horizontal">
+                            <Label Content="Mode:" />
+                            <TextBlock Margin="5 0 0 0" VerticalAlignment="Center" Text="{Binding Mode, Converter={StaticResource enumToStringConverter}}" />
+                        </StackPanel>
 
                         <GroupBox Margin="0 10 0 0"
-                                  Header="Schedule"
+                                  Header="Current Schedule"
                                   MinWidth="200"
                                   Padding="10"
                                   UseLayoutRounding="True"
@@ -75,7 +79,8 @@
                               Padding="10"
                               UseLayoutRounding="True">
                         <AdornerDecorator>
-                            <ListBox ItemsSource="{Binding LogEntries}"
+                            <ListBox x:Name="LogListBox"
+                                     ItemsSource="{Binding LogEntries}"
                                      ItemTemplate="{StaticResource LogEntryTemplate}">
                             </ListBox>
                         </AdornerDecorator>
@@ -83,12 +88,12 @@
                 </Grid>
             </mah:MetroTabItem.Content>
         </mah:MetroTabItem>
-        <mah:MetroTabItem Name="settingsTab" Header="Settings">
+        <mah:MetroTabItem Name="settingsTab" Header="Settings" IsEnabled="{Binding SettingsViewModel.IsDirty, Converter={StaticResource boolNegationConverter}}">
             <mah:MetroTabItem.Content>
                 <Grid Margin="{StaticResource TabContentMargin}"
                       DataContext="{Binding SettingsViewModel}">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
+                        <ColumnDefinition />
                     </Grid.ColumnDefinitions>
 
                     <Grid.RowDefinitions>
@@ -97,7 +102,8 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Grid.Row ="0"
-                                Grid.Column="0">
+                                Grid.Column="0"
+                                Width="200">
 
                         <Label Margin="{StaticResource ControlMargin}" Content="Mode" />
                         <ComboBox Grid.Row="0"

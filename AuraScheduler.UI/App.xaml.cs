@@ -51,6 +51,7 @@ namespace AuraScheduler.UI
 
             builder.Services.AddSingleton<ISettingsFileProvider>(x => new SettingsFileProvider(x.GetRequiredService<ILogger<SettingsFileProvider>>(), settingsPath));
             builder.Services.AddSingleton<MainWindow>();
+            builder.Services.AddSingleton<SettingsViewModel>();
 
             builder.Logging.ClearProviders();
 
