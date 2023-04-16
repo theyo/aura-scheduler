@@ -1,9 +1,7 @@
 ﻿<Application x:Class="AuraScheduler.UI.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:AuraScheduler.UI"
-             Startup="Application_Startup"
-             Exit="Application_Exit">
+             xmlns:local="clr-namespace:AuraScheduler.UI">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
