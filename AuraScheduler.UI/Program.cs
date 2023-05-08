@@ -1,9 +1,12 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Reflection;
 using System.Windows;
 
 using AuraScheduler.UI.Infrastructure;
 using AuraScheduler.Worker;
+
+using Hardcodet.Wpf.TaskbarNotification;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -48,6 +51,7 @@ namespace AuraScheduler.UI
 
             builder.Services.AddSingleton<App>();
             builder.Services.AddSingleton<MainWindow>();
+            builder.Services.AddSingleton<NotifyIconViewModel>();
             builder.Services.AddSingleton<SettingsViewModel>();
 
             builder.Logging.ClearProviders();
@@ -59,6 +63,12 @@ namespace AuraScheduler.UI
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
             var app = _host.Services.GetRequiredService<App>();
+            var mainWindow = _host!.Services.GetRequiredService<MainWindow>();
+            var notifyIconVM =_host.Services.GetRequiredService<NotifyIconViewModel>();
+
+            app.MainWindow = mainWindow;
+
+            app.SetTaskBarIconViewModel(notifyIconVM);
 
             app.Startup += Application_Startup;
             app.Exit += Application_Exit;
@@ -76,11 +86,12 @@ namespace AuraScheduler.UI
 
         private static async void Application_Startup(object sender, StartupEventArgs e)
         {
-            await _host!.StartAsync();
+            Application.Current.MainWindow.Show();
 
-            var mainWindow = _host.Services.GetRequiredService<MainWindow>();
-
-            mainWindow.Show();
+            await Task.Run(async () =>
+            {
+                await _host!.StartAsync();
+            });
         }
 
         private static async void Application_Exit(object sender, ExitEventArgs e)

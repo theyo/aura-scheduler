@@ -13,7 +13,8 @@
                  Width="650"
                  Icon="icon.ico"
                  ShowIconOnTitleBar="True"
-                 ResizeMode="NoResize"
+                 ResizeMode="CanMinimize"
+                 ShowCloseButton="False"
                  WindowStartupLocation="CenterScreen"
                  d:DataContext="{d:DesignInstance dtime:MainWindowViewModelDesignTime, IsDesignTimeCreatable=True}"
                  Background="{DynamicResource MahApps.Brushes.ThemeBackground}">
@@ -29,134 +30,135 @@
         </DataTemplate>
     </mah:MetroWindow.Resources>
 
-    <mah:MetroTabControl Style="{DynamicResource MahApps.Styles.TabControl.Animated}">
-        <mah:MetroTabItem Name="infoTab" Header="Info" IsEnabled="{Binding SettingsViewModel.IsDirty, Converter={StaticResource boolNegationConverter}}">
-            <mah:MetroTabItem.Content>
-                <Grid Margin="{StaticResource TabContentMargin}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="210"/>
-                        <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
+    <Grid>
+        <mah:MetroTabControl Style="{DynamicResource MahApps.Styles.TabControl.Animated}">
+            <mah:MetroTabItem Name="infoTab" Header="Info" IsEnabled="{Binding SettingsViewModel.IsDirty, Converter={StaticResource boolNegationConverter}}">
+                <mah:MetroTabItem.Content>
+                    <Grid Margin="{StaticResource TabContentMargin}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="210"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
 
-                    <Grid.RowDefinitions>
-                        <RowDefinition/>
-                    </Grid.RowDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
 
-                    <StackPanel Grid.Row ="0"
+                        <StackPanel Grid.Row ="0"
                                 Grid.Column="0"
                                 Margin="0 0 10 0"
                                 DataContext="{Binding SettingsViewModel}">
 
-                        <StackPanel Orientation="Horizontal">
-                            <Label Content="Mode:" />
-                            <TextBlock Margin="5 0 0 0" VerticalAlignment="Center" Text="{Binding Mode, Converter={StaticResource enumToStringConverter}}" />
-                        </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="Mode:" />
+                                <TextBlock Margin="5 0 0 0" VerticalAlignment="Center" Text="{Binding Mode, Converter={StaticResource enumToStringConverter}}" />
+                            </StackPanel>
 
-                        <GroupBox Margin="0 10 0 0"
+                            <GroupBox Margin="0 10 0 0"
                                   Header="Current Schedule"
                                   MinWidth="200"
                                   Padding="10"
                                   UseLayoutRounding="True"
                                   Visibility="{Binding ScheduleEnabled, Converter={StaticResource BooleanToVisibilityConverter}}">
-                            <AdornerDecorator>
-                                <StackPanel>
-                                    <Label Margin="{StaticResource ControlMargin}" Content="Lights On" />
-                                    <TextBlock Margin="{StaticResource ControlMargin}"
+                                <AdornerDecorator>
+                                    <StackPanel>
+                                        <Label Margin="{StaticResource ControlMargin}" Content="Lights On" />
+                                        <TextBlock Margin="{StaticResource ControlMargin}"
                                                Text="{Binding ScheduleLightsOn}"/>
 
-                                    <Label Margin="{StaticResource ControlMargin}" Content="Lights Off" />
-                                    <TextBlock Margin="{StaticResource ControlMargin}"
+                                        <Label Margin="{StaticResource ControlMargin}" Content="Lights Off" />
+                                        <TextBlock Margin="{StaticResource ControlMargin}"
                                                Text="{Binding ScheduleLightsOff}"/>
 
-                                </StackPanel>
-                            </AdornerDecorator>
-                        </GroupBox>
-                    </StackPanel>
+                                    </StackPanel>
+                                </AdornerDecorator>
+                            </GroupBox>
+                        </StackPanel>
 
-                    <GroupBox Grid.Row="0"
+                        <GroupBox Grid.Row="0"
                               Grid.Column="1"
                               Header="Logs"
                               Padding="10"
                               UseLayoutRounding="True">
-                        <AdornerDecorator>
-                            <ListBox x:Name="LogListBox"
+                            <AdornerDecorator>
+                                <ListBox x:Name="LogListBox"
                                      ItemsSource="{Binding LogEntries}"
                                      ItemTemplate="{StaticResource LogEntryTemplate}">
-                            </ListBox>
-                        </AdornerDecorator>
-                    </GroupBox>
-                </Grid>
-            </mah:MetroTabItem.Content>
-        </mah:MetroTabItem>
-        <mah:MetroTabItem Name="settingsTab" Header="Settings" IsEnabled="{Binding SettingsViewModel.IsDirty, Converter={StaticResource boolNegationConverter}}">
-            <mah:MetroTabItem.Content>
-                <Grid Margin="{StaticResource TabContentMargin}"
+                                </ListBox>
+                            </AdornerDecorator>
+                        </GroupBox>
+                    </Grid>
+                </mah:MetroTabItem.Content>
+            </mah:MetroTabItem>
+            <mah:MetroTabItem Name="settingsTab" Header="Settings" IsEnabled="{Binding SettingsViewModel.IsDirty, Converter={StaticResource boolNegationConverter}}">
+                <mah:MetroTabItem.Content>
+                    <Grid Margin="{StaticResource TabContentMargin}"
                       DataContext="{Binding SettingsViewModel}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition />
-                    </Grid.ColumnDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
 
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="50"/>
-                    </Grid.RowDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="50"/>
+                        </Grid.RowDefinitions>
 
-                    <StackPanel Grid.Row ="0"
+                        <StackPanel Grid.Row ="0"
                                 Grid.Column="0"
                                 Width="200">
 
-                        <Label Margin="{StaticResource ControlMargin}" Content="Mode" />
-                        <ComboBox Grid.Row="0"
+                            <Label Margin="{StaticResource ControlMargin}" Content="Mode" />
+                            <ComboBox Grid.Row="0"
                                   Grid.Column="1"
                                   MinWidth="200"
                                   Margin="{StaticResource ControlMargin}"
                                   ItemsSource="{Binding Source={local:EnumBindingSource {x:Type worker:LightMode }}, Mode=OneTime}"
                                   SelectedItem="{Binding Mode,Mode=TwoWay}">
-                        </ComboBox>
+                            </ComboBox>
 
 
-                        <GroupBox Margin="0 10 0 0"
+                            <GroupBox Margin="0 10 0 0"
                                   Header="Schedule"
                                   MinWidth="200"
                                   Padding="10"
                                   UseLayoutRounding="True"
                                   Visibility="{Binding ScheduleEnabled, Converter={StaticResource BooleanToVisibilityConverter}}">
-                            <AdornerDecorator>
-                                <StackPanel>
-                                    <Label Margin="{StaticResource ControlMargin}" Content="Lights On" />
-                                    <mah:TimePicker Margin="{StaticResource ControlMargin}"
+                                <AdornerDecorator>
+                                    <StackPanel>
+                                        <Label Margin="{StaticResource ControlMargin}" Content="Lights On" />
+                                        <mah:TimePicker Margin="{StaticResource ControlMargin}"
                                                     mah:TextBoxHelper.AutoWatermark="True"
                                                     PickerVisibility="All"
                                                     SelectedDateTime="{Binding ScheduleLightsOn, Converter={StaticResource timeOnlyConverter}, Mode=TwoWay, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
                                                     SelectedTimeFormat="Long" />
 
-                                    <Label Margin="{StaticResource ControlMargin}" Content="Lights Off" />
-                                    <mah:TimePicker Margin="{StaticResource ControlMargin}"
+                                        <Label Margin="{StaticResource ControlMargin}" Content="Lights Off" />
+                                        <mah:TimePicker Margin="{StaticResource ControlMargin}"
                                                     mah:TextBoxHelper.AutoWatermark="True"
                                                     PickerVisibility="All"
                                                     SelectedDateTime="{Binding ScheduleLightsOff, Converter={StaticResource timeOnlyConverter}, Mode=TwoWay, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged, NotifyOnValidationError=True}"
                                                     SelectedTimeFormat="Short" />
 
-                                </StackPanel>
-                            </AdornerDecorator>
-                        </GroupBox>
-                    </StackPanel>
+                                    </StackPanel>
+                                </AdornerDecorator>
+                            </GroupBox>
+                        </StackPanel>
 
-                    <StackPanel Grid.Row="1"
+                        <StackPanel Grid.Row="1"
                                 Grid.Column="0"
                                 Orientation="Horizontal"
                                 HorizontalAlignment="Center"
                                 Margin="10"
                                 Visibility="{Binding IsDirty, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <Button Content="Save" MinWidth="100" Command="{Binding SaveChangesCommand}">
-                        </Button>
-                        <Button Content="Cancel" MinWidth="100" Margin="10 0 0 0" Command="{Binding CancelChangesCommand}">
-                        </Button>
-                    </StackPanel>
-                </Grid>
-            </mah:MetroTabItem.Content>
-        </mah:MetroTabItem>
-    </mah:MetroTabControl>
+                            <Button Content="Save" MinWidth="100" Command="{Binding SaveChangesCommand}">
+                            </Button>
+                            <Button Content="Cancel" MinWidth="100" Margin="10 0 0 0" Command="{Binding CancelChangesCommand}">
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </mah:MetroTabItem.Content>
+            </mah:MetroTabItem>
+        </mah:MetroTabControl>
 
-
+    </Grid>
 </mah:MetroWindow>

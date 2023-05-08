@@ -2,15 +2,9 @@
 using System.Reflection;
 using System.Windows;
 
-using AuraScheduler.UI.Infrastructure;
-using AuraScheduler.Worker;
 
 using ControlzEx.Theming;
-
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Hardcodet.Wpf.TaskbarNotification;
 
 namespace AuraScheduler.UI
 {
@@ -19,9 +13,17 @@ namespace AuraScheduler.UI
     /// </summary>
     public partial class App : Application
     {
+        private TaskbarIcon? taskbarIcon;
+        private NotifyIconViewModel? notifyIconVM;
+
         public App()
         {
             InitializeComponent();
+        }
+
+        public void SetTaskBarIconViewModel(NotifyIconViewModel notifyIconViewModel)
+        {
+            notifyIconVM = notifyIconViewModel;
         }
 
         protected override void OnStartup(StartupEventArgs e)
@@ -30,6 +32,19 @@ namespace AuraScheduler.UI
             ThemeManager.Current.SyncTheme();
 
             base.OnStartup(e);
+
+            //initialize NotifyIcon
+            taskbarIcon = (TaskbarIcon)FindResource("MyNotifyIcon");
+
+            taskbarIcon.DataContext = notifyIconVM;
+
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            taskbarIcon?.Dispose();
+
+            base.OnExit(e);
         }
     }
 }
