@@ -7,9 +7,11 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using AuraScheduler.UI.Infrastructure;
 using Microsoft.Extensions.Logging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
 
 namespace AuraScheduler.UI
 {
+
     public partial class SettingsViewModel : ObservableObject
     {
         private readonly IOptionsMonitor<LightOptions> _optionsMonitor;
@@ -22,7 +24,6 @@ namespace AuraScheduler.UI
         [NotifyCanExecuteChangedFor(nameof(SaveChangesCommand))]
         [NotifyCanExecuteChangedFor(nameof(CancelChangesCommand))]
         bool isDirty = false;
-
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(ScheduleEnabled))]
@@ -72,10 +73,15 @@ namespace AuraScheduler.UI
             options.Schedule.LightsOn = ScheduleLightsOn;
             options.Schedule.LightsOff = ScheduleLightsOff;
 
-            _settingsFileProvider.UpdateSettingsFile(options);
-
-            IsDirty = false;
-            _logger.LogInformation("Changes saved!");
+            if (_settingsFileProvider.UpdateSettingsFile(options))
+            {
+                _logger.LogInformation("Changes saved!");
+                IsDirty = false;
+            }
+            else
+            {
+                CancelChanges();
+            }
         }
 
         [RelayCommand(CanExecute = nameof(CanSaveOrCancel))]
