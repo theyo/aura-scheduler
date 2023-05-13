@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+	<Fragment>
+		<ComponentGroup Id="AURASchedulerUIComponents" Directory="INSTALLFOLDER">
+			<Component Guid="928446c2-9c57-4dd6-9b7e-da491d6f044c">
+				<File Id="AURASchedulerUIApp" Source="AuraScheduler.UI.exe" />
+				<File Id="AURASchedulerWorker" Source="AuraScheduler.Worker.exe" />
+				<File Source="AuraScheduler.Worker.runtimeconfig.json" />
+				<File Source="appsettings.json" />
+				<File Source="D3DCompiler_47_cor3.dll" />
+				<File Source="PenImc_cor3.dll" />
+				<File Source="PresentationNative_cor3.dll" />
+				<File Source="vcruntime140_cor3.dll" />
+				<File Source="wpfgfx_cor3.dll" />
+				<File Source="LightSettings.json" />
+				<Shortcut Name="AURA Scheduler" Directory="ProgramMenuFolder" Advertise="yes" Icon="uiapp.exe" />
+				<Shortcut Name="AURA Scheduler" Directory="StartupFolder" Advertise="yes" Icon="uiapp.exe" />
+			</Component>
+
+			<!--<Component Directory="DesktopFolder" Condition="ENABLEDESKTOPSHORTCUT">
+				<RegistryValue Root="HKCU" Key="SOFTWARE\TheYo\AURAScheduler" Name="DesktopShortcutEnabled" Value="1" />
+
+				<Shortcut Name="AURA Scheduler" Directory="DesktopFolder"
+						  Target="[#AURASchedulerUIApp]" Icon="uiapp.exe" />
+			</Component>-->
+
+		</ComponentGroup>
+
+		<Icon Id="uiapp.exe" SourceFile="..\icon.ico"/>
+	</Fragment>
+</Wix>
