@@ -2,7 +2,7 @@
 	<Package Name="AURA Scheduler" Manufacturer="TheYo" Version="$(Version)" UpgradeCode="264899C9-951A-4545-9D88-DAB9E2E95FC8" Scope="perUser">
 		<MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)" />
 
-		<Property Id="ARPPRODUCTICON" Value="worker.exe" />
+		<Property Id="ARPPRODUCTICON" Value="uiapp.exe" />
 
 		<MediaTemplate EmbedCab="yes"/>
 
