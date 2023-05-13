@@ -27,5 +27,16 @@
 		</ComponentGroup>
 
 		<Icon Id="uiapp.exe" SourceFile="..\icon.ico"/>
+
+		<CustomAction Id="EXECUTE_AFTER_FINALIZE"
+              Execute="immediate"
+              Impersonate="yes"
+              Return="asyncNoWait"
+              FileRef="AURASchedulerUIApp"
+              ExeCommand="" />
+
+		<InstallExecuteSequence>
+			<Custom Action="EXECUTE_AFTER_FINALIZE" After="InstallFinalize"></Custom>
+		</InstallExecuteSequence>
 	</Fragment>
 </Wix>
