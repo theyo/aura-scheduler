@@ -18,6 +18,7 @@ namespace AuraScheduler.UI
     public class Program
     {
         private static IHost? _host;
+        private static ILogger? _logger;
 
         private const string LightSettingsFileName = "LightSettings.json";
 
@@ -35,6 +36,14 @@ namespace AuraScheduler.UI
                 var appDataRoot = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 
                 settingsPath = Path.Combine(appDataRoot, company, product, LightSettingsFileName);
+
+                var settingsFileInfo = new FileInfo(settingsPath);
+
+                if (!settingsFileInfo.Exists)
+                {
+                    settingsFileInfo.Directory!.Create();
+                    File.Copy(Path.Combine(AppContext.BaseDirectory, LightSettingsFileName), settingsPath);
+                }
             }
             else
             {
@@ -60,11 +69,14 @@ namespace AuraScheduler.UI
 
             _host = builder.Build();
 
+            var loggerFactory = _host!.Services.GetRequiredService<ILoggerFactory>();
+            _logger = loggerFactory.CreateLogger<App>();
+
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
             var app = _host.Services.GetRequiredService<App>();
             var mainWindow = _host!.Services.GetRequiredService<MainWindow>();
-            var notifyIconVM =_host.Services.GetRequiredService<NotifyIconViewModel>();
+            var notifyIconVM = _host.Services.GetRequiredService<NotifyIconViewModel>();
 
             app.MainWindow = mainWindow;
 
@@ -73,24 +85,33 @@ namespace AuraScheduler.UI
             app.Startup += Application_Startup;
             app.Exit += Application_Exit;
 
+            _logger.LogDebug("Starting Application");
+
             app.Run();
         }
 
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            var loggerFactory = _host!.Services.GetRequiredService<ILoggerFactory>();
-            var logger = loggerFactory.CreateLogger<App>();
-
-            logger.LogError(e.ExceptionObject as Exception, "An unhandled error occurred");
+            _logger!.LogError(e.ExceptionObject as Exception, "An unhandled error occurred");
         }
 
         private static async void Application_Startup(object sender, StartupEventArgs e)
         {
             Application.Current.MainWindow.Show();
 
+            _logger!.LogDebug("Starting worker...");
             await Task.Run(async () =>
             {
-                await _host!.StartAsync();
+                try
+                {
+                    await _host!.StartAsync();
+                    _logger!.LogInformation("Worker Started!");
+
+                }
+                catch (Exception ex)
+                {
+                    _logger!.LogError(ex, "Error Starting Worker");
+                }
             });
         }
 
@@ -98,7 +119,11 @@ namespace AuraScheduler.UI
         {
             using (_host)
             {
+                _logger!.LogInformation("Stopping worker...");
+
                 await _host!.StopAsync();
+
+                _logger!.LogInformation("Worker Stopped");
             }
         }
 
