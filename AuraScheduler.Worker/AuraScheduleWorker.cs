@@ -13,7 +13,7 @@ namespace AuraScheduler.Worker
 
         private readonly AuraHelper _auraHelper;
 
-        private double _countDownReset = 0;
+        private double _countDownForDriftCheck = 0;
         private double _countDown = 0;
 
         public AuraScheduleWorker(ILogger<AuraScheduleWorker> logger, IOptionsMonitor<LightOptions> optionsMonitor)
@@ -44,7 +44,7 @@ namespace AuraScheduler.Worker
                 {
                     _logger.LogDebug("Checking reset countdown...");
 
-                    if (_countDownReset-- <= 0)
+                    if (_countDownForDriftCheck-- <= 0)
                     {
                         _logger.LogDebug("Updating reset countdown...");
 
@@ -66,7 +66,7 @@ namespace AuraScheduler.Worker
 
                         _logger.LogDebug("Updating countdown to next scheduled time...");
 
-                        _countDown = _lightOptionsMonitor.CurrentValue.SecondsUntilNextScheduledTime(TimeOnly.FromDateTime(DateTime.Now));
+                        UpdateCountdown();
 
                         _logger.LogDebug("Countdown updated!");
 
@@ -154,7 +154,7 @@ namespace AuraScheduler.Worker
         private void UpdateCountdown()
         {
             _countDown = _lightOptionsMonitor.CurrentValue.SecondsUntilNextScheduledTime(TimeOnly.FromDateTime(DateTime.Now));
-            _countDownReset = 5;
+            _countDownForDriftCheck = 5;
         }
     }
 }
