@@ -3,8 +3,8 @@
 		<StandardDirectory Id="ProgramFiles64Folder">
 			<Directory Id="INSTALLFOLDER" Name="!(bind.Property.Manufacturer)\!(bind.Property.ProductName)" />
 		</StandardDirectory>
-		<StandardDirectory Id="CommonAppDataFolder">
+		<!--<StandardDirectory Id="CommonAppDataFolder">
 			<Directory Id="APPDATAFOLDER" Name="!(bind.Property.Manufacturer)\!(bind.Property.ProductName)" />
-		</StandardDirectory>
+		</StandardDirectory>-->
 	</Fragment>
 </Wix>

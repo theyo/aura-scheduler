@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
-	<Fragment>
+	<!--<Fragment>
 		<ComponentGroup Id="AURASchedulerServiceComponents" Directory="INSTALLFOLDER">
 			<Component>
 				<File Source="AuraScheduler.Worker.exe" />
@@ -14,5 +14,5 @@
 		</ComponentGroup>
 
 		<Icon Id="worker.exe" SourceFile="..\icon.ico"/>
-	</Fragment>
+	</Fragment>-->
 </Wix>
