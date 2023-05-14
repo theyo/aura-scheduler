@@ -27,4 +27,6 @@ jobs:
     - name: Build UI
       run: dotnet build AuraScheduler.UI/AuraScheduler.UI.csproj --configuration Release --no-restore
     - name: Test
-      run: dotnet test --configuration Release --no-build --verbosity normal
+      run: dotnet test --configuration Release --verbosity normal
+    - name: Build Setup project
+      run: dotnet build Setup/Setup.csproj --configuration Release --no-restore
