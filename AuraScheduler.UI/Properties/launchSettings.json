@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "AuraScheduler.UI": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

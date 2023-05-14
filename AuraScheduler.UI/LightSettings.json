@@ -1,0 +1,9 @@
+{
+  "LightOptions": {
+    "LightMode": "Schedule",
+    "Schedule": {
+      "LightsOn": "07:30:00",
+      "LightsOff": "21:30:00"
+    }
+  }
+}

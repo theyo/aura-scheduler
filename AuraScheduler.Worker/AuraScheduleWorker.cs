@@ -4,9 +4,6 @@ using AuraScheduler.Worker.Aura;
 
 using Microsoft.Extensions.Options;
 
-//using RGB.NET.Core;
-//using RGB.NET.Devices.Asus;
-
 namespace AuraScheduler.Worker
 {
     public class AuraScheduleWorker : BackgroundService
@@ -16,7 +13,7 @@ namespace AuraScheduler.Worker
 
         private readonly AuraHelper _auraHelper;
 
-        private double _countDownReset = 0;
+        private double _countDownForDriftCheck = 0;
         private double _countDown = 0;
 
         public AuraScheduleWorker(ILogger<AuraScheduleWorker> logger, IOptionsMonitor<LightOptions> optionsMonitor)
@@ -31,6 +28,8 @@ namespace AuraScheduler.Worker
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            _logger.LogInformation("Worker starting...");
+
             CheckAndSetLights();
 
             _countDown = _lightOptionsMonitor.CurrentValue.SecondsUntilNextScheduledTime(TimeOnly.FromDateTime(DateTime.Now));
@@ -39,19 +38,41 @@ namespace AuraScheduler.Worker
 
             try
             {
+                _logger.LogInformation("Worker running!");
+
                 while (!stoppingToken.IsCancellationRequested)
                 {
-                    if (_countDownReset-- <= 0)
+                    _logger.LogDebug("Checking reset countdown...");
+
+                    if (_countDownForDriftCheck-- <= 0)
                     {
+                        _logger.LogDebug("Updating reset countdown...");
+
                         UpdateCountdown();
+
+                        _logger.LogDebug("Reset countdown updated!");
                     }
+
+                    _logger.LogDebug("Finished checking rest countdown!");
+
 
                     if (_lightOptionsMonitor.CurrentValue.ScheduleEnabled && _countDown-- <= 0)
                     {
+                        _logger.LogDebug("Schedule Enabled and countdown time has passed, checking and setting lights...");
+
                         CheckAndSetLights();
 
-                        _countDown = _lightOptionsMonitor.CurrentValue.SecondsUntilNextScheduledTime(TimeOnly.FromDateTime(DateTime.Now));
+                        _logger.LogDebug("Done checking and setting lights!");
+
+                        _logger.LogDebug("Updating countdown to next scheduled time...");
+
+                        UpdateCountdown();
+
+                        _logger.LogDebug("Countdown updated!");
+
                     }
+
+                    _logger.LogDebug("Nothing more to do, waiting...");
 
                     await Task.Delay(1000, stoppingToken);
                 }
@@ -80,7 +101,7 @@ namespace AuraScheduler.Worker
             finally
             {
                 // always release when the program ends
-                _logger.LogInformation("Program shutting down, releasing control");
+                _logger.LogInformation("Worker shutting down, releasing control");
 
                 _auraHelper.ReleaseControl();
             }
@@ -104,12 +125,16 @@ namespace AuraScheduler.Worker
                 _logger.LogDebug("Setting color to: {color}", Color.Black);
 
                 _auraHelper.SetLightsToColor(Color.Black);
+
+                _logger.LogDebug("Color set to: {color}", Color.Black);
             }
             else
             {
                 _logger.LogInformation("Lights should be on, releasing control");
 
                 _auraHelper.ReleaseControl();
+
+                _logger.LogDebug("Control released");
             }
         }
 
@@ -129,7 +154,7 @@ namespace AuraScheduler.Worker
         private void UpdateCountdown()
         {
             _countDown = _lightOptionsMonitor.CurrentValue.SecondsUntilNextScheduledTime(TimeOnly.FromDateTime(DateTime.Now));
-            _countDownReset = 5;
+            _countDownForDriftCheck = 5;
         }
     }
 }

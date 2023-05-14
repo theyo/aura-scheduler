@@ -1,6 +1,3 @@
-//using RGB.NET.Core;
-//using RGB.NET.Devices.Asus;
-
 namespace AuraScheduler.Worker
 {
     public enum LightMode
@@ -22,7 +19,7 @@ namespace AuraScheduler.Worker
 
         public const string SectionName = nameof(LightOptions);
 
-        public LightMode LightMode { get; set; }
+        public LightMode LightMode { get; set; } = LightMode.Schedule;
 
         public bool ScheduleEnabled => LightMode == LightMode.Schedule;
 

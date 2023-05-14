@@ -11,6 +11,7 @@
 		<PlatformTarget>x64</PlatformTarget>
 		<Platforms>x64</Platforms>
 		<ApplicationIcon>..\icon.ico</ApplicationIcon>
+		<Product>AURA Scheduler Worker Service</Product>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -19,9 +20,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Reference Include="Interop.AuraServiceLib">
-			<HintPath>C:\Program Files\ASUS\Virtual Pet\Interop.AuraServiceLib.dll</HintPath>
-		</Reference>
+	  <Reference Include="Interop.AuraServiceLib">
+	    <HintPath>..\lib\Interop.AuraServiceLib.dll</HintPath>
+	  </Reference>
 	</ItemGroup>
 
 	<ItemGroup>
