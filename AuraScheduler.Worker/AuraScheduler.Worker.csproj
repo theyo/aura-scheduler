@@ -20,9 +20,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Reference Include="Interop.AuraServiceLib">
-			<HintPath>C:\Program Files\ASUS\Virtual Pet\Interop.AuraServiceLib.dll</HintPath>
-		</Reference>
+	  <Reference Include="Interop.AuraServiceLib">
+	    <HintPath>..\lib\Interop.AuraServiceLib.dll</HintPath>
+	  </Reference>
 	</ItemGroup>
 
 	<ItemGroup>
