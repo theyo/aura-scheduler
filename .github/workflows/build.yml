@@ -23,8 +23,8 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build Worker
-      run: dotnet build aura-scheduler/AuraScheduler.Worker/AuraScheduler.Worker.csproj --configuration Release --no-restore
+      run: dotnet build AuraScheduler.Worker/AuraScheduler.Worker.csproj --configuration Release --no-restore
     - name: Build UI
-      run: dotnet build aura-scheduler/AuraScheduler.UI/AuraScheduler.UI.csproj --configuration Release --no-restore
+      run: dotnet build AuraScheduler.UI/AuraScheduler.UI.csproj --configuration Release --no-restore
     - name: Test
       run: dotnet test --configuration Release --no-build --verbosity normal
