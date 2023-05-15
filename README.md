@@ -2,7 +2,6 @@
 # aura-scheduler
 Uses the Asus AURA SDK to turn LEDs on/off on a schedule
 
-# Status
 [![.NET](https://github.com/theyo/aura-scheduler/actions/workflows/build.yml/badge.svg)](https://github.com/theyo/aura-scheduler/actions/workflows/build.yml)
 
 
