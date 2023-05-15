@@ -1,5 +1,10 @@
+
 # aura-scheduler
 Uses the Asus AURA SDK to turn LEDs on/off on a schedule
+
+# Status
+[![.NET](https://github.com/theyo/aura-scheduler/actions/workflows/build.yml/badge.svg)](https://github.com/theyo/aura-scheduler/actions/workflows/build.yml)
+
 
 # Requirements
 The Asus AURA SDK `Interop.AuraServiceLib.dll` needs to be present on the system. Normally this dll is installed with ASUS AURA (through ARMOURY CRATE).
