@@ -1,4 +1,5 @@
 using System.Drawing;
+using System.Threading.Tasks;
 
 using AuraScheduler.Worker.Aura;
 
@@ -13,15 +14,21 @@ namespace AuraScheduler.Worker
 
         private readonly AuraHelper _auraHelper;
 
-        private double _countDownForDriftCheck = 0;
-        private double _countDown = 0;
+        private readonly IDisposable? _settingsChangeEvent;
+
+        private readonly TimeSpan _defaultTimeSpan = TimeSpan.FromSeconds(1);
+
+        private readonly CancellationTokenSource _timerCTS = new();
+
+        private readonly PeriodicTimer _timer;
 
         public AuraScheduleWorker(ILogger<AuraScheduleWorker> logger, IOptionsMonitor<LightOptions> optionsMonitor)
         {
             _logger = logger;
             _lightOptionsMonitor = optionsMonitor;
+            _timer = new PeriodicTimer(_defaultTimeSpan);
 
-            _lightOptionsMonitor.OnChange(SettingsChanged);
+            _settingsChangeEvent = _lightOptionsMonitor.OnChange(UpdateLightsAndSetTimer);
 
             _auraHelper = new AuraHelper();
         }
@@ -30,53 +37,19 @@ namespace AuraScheduler.Worker
         {
             _logger.LogInformation("Worker starting...");
 
-            CheckAndSetLights();
-
-            _countDown = _lightOptionsMonitor.CurrentValue.SecondsUntilNextScheduledTime(TimeOnly.FromDateTime(DateTime.Now));
-
-            await Task.Delay(1000, stoppingToken);
-
             try
             {
+                CheckAndSetLights(_lightOptionsMonitor.CurrentValue);
+
                 _logger.LogInformation("Worker running!");
 
-                while (!stoppingToken.IsCancellationRequested)
+                while (!stoppingToken.IsCancellationRequested && await _timer.WaitForNextTickAsync(_timerCTS.Token))
                 {
-                    _logger.LogDebug("Checking reset countdown...");
-
-                    if (_countDownForDriftCheck-- <= 0)
+                    if (_lightOptionsMonitor.CurrentValue.ScheduleEnabled)
                     {
-                        _logger.LogDebug("Updating reset countdown...");
-
-                        UpdateCountdown();
-
-                        _logger.LogDebug("Reset countdown updated!");
+                        CheckAndSetLights(_lightOptionsMonitor.CurrentValue);
                     }
-
-                    _logger.LogDebug("Finished checking rest countdown!");
-
-
-                    if (_lightOptionsMonitor.CurrentValue.ScheduleEnabled && _countDown-- <= 0)
-                    {
-                        _logger.LogDebug("Schedule Enabled and countdown time has passed, checking and setting lights...");
-
-                        CheckAndSetLights();
-
-                        _logger.LogDebug("Done checking and setting lights!");
-
-                        _logger.LogDebug("Updating countdown to next scheduled time...");
-
-                        UpdateCountdown();
-
-                        _logger.LogDebug("Countdown updated!");
-
-                    }
-
-                    _logger.LogDebug("Nothing more to do, waiting...");
-
-                    await Task.Delay(1000, stoppingToken);
                 }
-
             }
             catch (TaskCanceledException)
             {
@@ -104,57 +77,60 @@ namespace AuraScheduler.Worker
                 _logger.LogInformation("Worker shutting down, releasing control");
 
                 _auraHelper.ReleaseControl();
+
+                _settingsChangeEvent?.Dispose();
             }
-
-
         }
 
-        private void CheckAndSetLights()
+        private void CheckAndSetLights(LightOptions options)
         {
             var now = TimeOnly.FromDateTime(DateTime.Now);
 
-            if (!_lightOptionsMonitor.CurrentValue.ShouldLightsBeOn(now))
+            var lightsShouldBeOn = options.ShouldLightsBeOn(now);
+
+            _logger.LogDebug("Lights should be {lightStatus}...", lightsShouldBeOn ? "ON" : "OFF");
+
+            if (lightsShouldBeOn)
+            {
+                if (_auraHelper.HasControl)
+                {
+                    _logger.LogInformation("Lights should be on, releasing control");
+
+                    _auraHelper.ReleaseControl();
+
+                    _logger.LogDebug("Control released");
+                }
+                else
+                {
+                    _logger.LogDebug("Lights are already on, nothing to do");
+                }
+            }
+            else
             {
                 if (!_auraHelper.HasControl)
                 {
                     _logger.LogInformation("Lights should be off, taking control");
 
                     _auraHelper.TakeControl();
+
+                    _logger.LogDebug("Setting color to: {color}", Color.Black);
+
+                    _auraHelper.SetLightsToColor(Color.Black);
+
+                    _logger.LogDebug("Color set to: {color}", Color.Black);
                 }
-
-                _logger.LogDebug("Setting color to: {color}", Color.Black);
-
-                _auraHelper.SetLightsToColor(Color.Black);
-
-                _logger.LogDebug("Color set to: {color}", Color.Black);
-            }
-            else
-            {
-                _logger.LogInformation("Lights should be on, releasing control");
-
-                _auraHelper.ReleaseControl();
-
-                _logger.LogDebug("Control released");
+                else
+                {
+                    _logger.LogDebug("Lights are already off, nothing to do");
+                }
             }
         }
 
-        private void SettingsChanged(LightOptions options)
+        private void UpdateLightsAndSetTimer(LightOptions options)
         {
             _logger.LogInformation("Settings changed, updating lights");
 
-            if (_lightOptionsMonitor.CurrentValue.ScheduleEnabled)
-            {
-                UpdateCountdown();
-                _logger.LogDebug("New Countdown: {countdown}", _countDown);
-            }
-
-            CheckAndSetLights();
-        }
-
-        private void UpdateCountdown()
-        {
-            _countDown = _lightOptionsMonitor.CurrentValue.SecondsUntilNextScheduledTime(TimeOnly.FromDateTime(DateTime.Now));
-            _countDownForDriftCheck = 5;
+            CheckAndSetLights(options);
         }
     }
 }
