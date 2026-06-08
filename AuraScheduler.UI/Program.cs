@@ -1,30 +1,32 @@
-﻿using System;
-using System.IO;
 using System.Reflection;
-using System.Windows;
 
 using AuraScheduler.UI.Infrastructure;
 using AuraScheduler.Worker;
-
-using Hardcodet.Wpf.TaskbarNotification;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
+using Microsoft.UI.Dispatching;
+
+using WinRT;
+
 namespace AuraScheduler.UI
 {
     public class Program
     {
-        private static IHost? _host;
-        private static ILogger? _logger;
-
-        private const string LightSettingsFileName = "LightSettings.json";
+        private const string SettingsFileName = "settings.json";
 
         [STAThread]
         public static void Main(string[]? args = null)
         {
+            // Required for PublishSingleFile + self-contained Windows App SDK deployments:
+            // the bootstrapper needs to know where to find the bundled Windows App Runtime
+            // before any WinRT/WinAppSDK API is touched, so this must be the very first thing
+            // that runs in Main.
+            Environment.SetEnvironmentVariable("MICROSOFT_WINDOWSAPPRUNTIME_BASE_DIRECTORY", AppContext.BaseDirectory);
+
             var builder = Host.CreateApplicationBuilder(args);
 
             string settingsPath;
@@ -35,97 +37,58 @@ namespace AuraScheduler.UI
                 var product = typeof(App).Assembly.GetCustomAttribute<AssemblyProductAttribute>()!.Product;
                 var appDataRoot = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 
-                settingsPath = Path.Combine(appDataRoot, company, product, LightSettingsFileName);
+                settingsPath = Path.Combine(appDataRoot, company, product, SettingsFileName);
 
                 var settingsFileInfo = new FileInfo(settingsPath);
-
                 if (!settingsFileInfo.Exists)
                 {
                     settingsFileInfo.Directory!.Create();
-                    File.Copy(Path.Combine(AppContext.BaseDirectory, LightSettingsFileName), settingsPath);
+
+                    // In a PublishSingleFile deployment AppContext.BaseDirectory is the temp
+                    // extraction directory for bundled assemblies, NOT the directory that holds
+                    // the exe.  Files marked ExcludeFromSingleFile=true (e.g. settings.json)
+                    // are placed next to the exe, so we must use the process path to locate them.
+                    var exeDir = Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
+                    File.Copy(Path.Combine(exeDir, SettingsFileName), settingsPath);
                 }
             }
             else
             {
-                settingsPath = LightSettingsFileName;
+                settingsPath = SettingsFileName;
             }
 
-
-            builder.Configuration.AddJsonFile(settingsPath, true, true);
-
+            builder.Configuration.AddJsonFile(settingsPath, optional: true, reloadOnChange: true);
             builder.Services.Configure<LightOptions>(builder.Configuration.GetSection(LightOptions.SectionName));
+            builder.Services.AddSingleton<AuraInitializationStatus>();
             builder.Services.AddHostedService<AuraScheduleWorker>();
 
-            builder.Services.AddSingleton<ISettingsFileProvider>(x => new SettingsFileProvider(x.GetRequiredService<ILogger<SettingsFileProvider>>(), settingsPath));
+            builder.Services.AddSingleton<ISettingsFileProvider>(_ =>
+                new SettingsFileProvider(
+                    _.GetRequiredService<ILogger<SettingsFileProvider>>(),
+                    settingsPath));
 
-            builder.Services.AddSingleton<App>();
             builder.Services.AddSingleton<MainWindow>();
             builder.Services.AddSingleton<NotifyIconViewModel>();
             builder.Services.AddSingleton<SettingsViewModel>();
 
             builder.Logging.ClearProviders();
-
             builder.Logging.AddObservableLogger();
 
-            _host = builder.Build();
+            var host = builder.Build();
 
-            var loggerFactory = _host!.Services.GetRequiredService<ILoggerFactory>();
-            _logger = loggerFactory.CreateLogger<App>();
-
-            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-
-            var app = _host.Services.GetRequiredService<App>();
-            var mainWindow = _host!.Services.GetRequiredService<MainWindow>();
-            var notifyIconVM = _host.Services.GetRequiredService<NotifyIconViewModel>();
-
-            app.MainWindow = mainWindow;
-
-            app.SetTaskBarIconViewModel(notifyIconVM);
-
-            app.Startup += Application_Startup;
-            app.Exit += Application_Exit;
-
-            _logger.LogDebug("Starting Application");
-
-            app.Run();
-        }
-
-        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
-        {
-            _logger!.LogError(e.ExceptionObject as Exception, "An unhandled error occurred");
-        }
-
-        private static async void Application_Startup(object sender, StartupEventArgs e)
-        {
-            Application.Current.MainWindow.Show();
-
-            _logger!.LogDebug("Starting worker...");
-            await Task.Run(async () =>
+            AppDomain.CurrentDomain.UnhandledException += (_, e) =>
             {
-                try
-                {
-                    await _host!.StartAsync();
-                    _logger!.LogInformation("Worker Started!");
+                var logger = host.Services.GetRequiredService<ILoggerFactory>().CreateLogger<App>();
+                logger.LogError(e.ExceptionObject as Exception, "Unhandled exception");
+            };
 
-                }
-                catch (Exception ex)
-                {
-                    _logger!.LogError(ex, "Error Starting Worker");
-                }
+            Microsoft.UI.Xaml.Application.Start(_ =>
+            {
+                var context = new DispatcherQueueSynchronizationContext(DispatcherQueue.GetForCurrentThread());
+                SynchronizationContext.SetSynchronizationContext(context);
+
+                new App(host);
             });
         }
-
-        private static async void Application_Exit(object sender, ExitEventArgs e)
-        {
-            using (_host)
-            {
-                _logger!.LogInformation("Stopping worker...");
-
-                await _host!.StopAsync();
-
-                _logger!.LogInformation("Worker Stopped");
-            }
-        }
-
     }
 }

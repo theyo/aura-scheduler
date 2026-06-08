@@ -348,3 +348,6 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+# Windows Sandbox config files contain absolute host paths — use InstallerSandbox.cmd instead
+InstallerSandbox.wsb

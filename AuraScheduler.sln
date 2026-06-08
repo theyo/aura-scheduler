@@ -1,24 +1,16 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.6.33513.286
+# Visual Studio Version 18
+VisualStudioVersion = 18.7.11822.327
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuraScheduler.Worker", "AuraScheduler.Worker\AuraScheduler.Worker.csproj", "{134FCF87-6773-4EB9-8B46-04762EF08938}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuraScheduler.Worker.Tests", "AuraScheduler.Worker.Tests\AuraScheduler.Worker.Tests.csproj", "{F0293A12-638A-40C9-9165-261DD92B36F3}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "root", "root", "{AC9AB885-2573-4EB7-B78A-BC0AC4E0F559}"
 	ProjectSection(SolutionItems) = preProject
 		Directory.Build.props = Directory.Build.props
-		InstallerSandbox.wsb = InstallerSandbox.wsb
-		InstallerSandboxStart.cmd = InstallerSandboxStart.cmd
+		InstallerSandboxStartupScript.cmd = InstallerSandboxStartupScript.cmd
 		LICENSE = LICENSE
 		README.md = README.md
+		RunWindowsSandbox.cmd = RunWindowsSandbox.cmd
 	EndProjectSection
-EndProject
-Project("{B7DD6F7E-DEF8-4E67-B5B7-07EF123DB6F0}") = "Setup", "Setup\Setup.wixproj", "{A06C8C3D-52B6-4265-96F8-1C61EB9BC9DE}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuraScheduler.UI", "AuraScheduler.UI\AuraScheduler.UI.csproj", "{9C45A10E-7618-46E2-A273-992B2315CA99}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "github", "github", "{DF13FA0D-6301-41B9-8C1D-922047FB097E}"
 EndProject
@@ -26,6 +18,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\build.yml = .github\workflows\build.yml
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuraScheduler.Worker", "AuraScheduler.Worker\AuraScheduler.Worker.csproj", "{134FCF87-6773-4EB9-8B46-04762EF08938}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuraScheduler.Worker.Tests", "AuraScheduler.Worker.Tests\AuraScheduler.Worker.Tests.csproj", "{F0293A12-638A-40C9-9165-261DD92B36F3}"
+EndProject
+Project("{B7DD6F7E-DEF8-4E67-B5B7-07EF123DB6F0}") = "Setup", "Setup\Setup.wixproj", "{A06C8C3D-52B6-4265-96F8-1C61EB9BC9DE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuraScheduler.UI", "AuraScheduler.UI\AuraScheduler.UI.csproj", "{9C45A10E-7618-46E2-A273-992B2315CA99}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

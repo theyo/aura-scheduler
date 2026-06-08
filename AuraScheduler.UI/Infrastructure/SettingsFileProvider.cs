@@ -17,12 +17,12 @@ namespace AuraScheduler.UI.Infrastructure
 
         private readonly JsonSerializerOptions _jsonSerializerOptions;
 
-        public string LightSettingsFilePath { get; }
+        public string SettingsFilePath { get; }
 
-        public SettingsFileProvider(ILogger<SettingsFileProvider> logger, string lightSettingsFilePath)
+        public SettingsFileProvider(ILogger<SettingsFileProvider> logger, string settingsFilePath)
         {
             _logger = logger;
-            LightSettingsFilePath = lightSettingsFilePath;
+            SettingsFilePath = settingsFilePath;
 
             _jsonSerializerOptions = new JsonSerializerOptions() { WriteIndented = true, IgnoreReadOnlyFields = true, IgnoreReadOnlyProperties = true };
             _jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -39,7 +39,7 @@ namespace AuraScheduler.UI.Infrastructure
 
                     var wrappedOptions = new LightOptionsSettingsWrapper(updatedSettings);
 
-                    File.WriteAllText(LightSettingsFilePath, JsonSerializer.Serialize(wrappedOptions, wrappedOptions.GetType(), _jsonSerializerOptions));
+                    File.WriteAllText(SettingsFilePath, JsonSerializer.Serialize(wrappedOptions, wrappedOptions.GetType(), _jsonSerializerOptions));
 
                     _logger.LogDebug("Finished writing updated settings to file!");
                 }

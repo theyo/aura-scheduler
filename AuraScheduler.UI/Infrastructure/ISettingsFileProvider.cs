@@ -6,6 +6,6 @@ namespace AuraScheduler.UI.Infrastructure
     {
         bool UpdateSettingsFile(LightOptions updatedSettings);
 
-        string LightSettingsFilePath { get; }
+        string SettingsFilePath { get; }
     }
 }

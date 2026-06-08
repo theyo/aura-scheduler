@@ -5,7 +5,7 @@ namespace AuraScheduler.UI.ViewModels.DesignTime
 {
     public class MockSettingsFileProvider : ISettingsFileProvider
     {
-        public string LightSettingsFilePath { get; } = "";
+        public string SettingsFilePath { get; } = "";
 
         public bool UpdateSettingsFile(LightOptions updatedSettings)
         {

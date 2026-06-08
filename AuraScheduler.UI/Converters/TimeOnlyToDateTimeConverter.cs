@@ -1,36 +1,20 @@
-﻿using System.Globalization;
-using System.Windows;
-using System.Windows.Data;
+using Microsoft.UI.Xaml.Data;
 
 namespace AuraScheduler.UI
 {
-    [ValueConversion(typeof(TimeOnly), typeof(DateTime))]
-    public class TimeOnlyToDateTimeConverter : IValueConverter
+    // WinUI 3 TimePicker.SelectedTime uses TimeSpan?, not DateTime
+    public class TimeOnlyToTimeSpanConverter : IValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object? Convert(object value, Type targetType, object parameter, string language)
         {
-            var now = DateTime.Now;
-
-            try
-            {
-                return new DateTime(now.Year, now.Month, now.Day) + ((TimeOnly)value).ToTimeSpan();
-            }
-            catch
-            {
-                return DateTime.MinValue;
-            }
+            try { return ((TimeOnly)value).ToTimeSpan(); }
+            catch { return TimeSpan.Zero; }
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object ConvertBack(object value, Type targetType, object parameter, string language)
         {
-            try
-            {
-                return TimeOnly.FromDateTime((DateTime)value);
-            }
-            catch
-            {
-                return DependencyProperty.UnsetValue;
-            }
+            try { return TimeOnly.FromTimeSpan((TimeSpan)value); }
+            catch { return TimeOnly.MinValue; }
         }
     }
 }

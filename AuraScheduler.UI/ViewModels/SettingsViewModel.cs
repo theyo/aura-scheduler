@@ -1,17 +1,16 @@
-﻿using System.ComponentModel;
-using Microsoft.Extensions.Options;
+using System.ComponentModel;
 
+using AuraScheduler.UI.Infrastructure;
 using AuraScheduler.Worker;
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using AuraScheduler.UI.Infrastructure;
+
 using Microsoft.Extensions.Logging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
+using Microsoft.Extensions.Options;
 
 namespace AuraScheduler.UI
 {
-
     public partial class SettingsViewModel : ObservableObject
     {
         private readonly IOptionsMonitor<LightOptions> _optionsMonitor;
@@ -23,45 +22,60 @@ namespace AuraScheduler.UI
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(SaveChangesCommand))]
         [NotifyCanExecuteChangedFor(nameof(CancelChangesCommand))]
-        bool isDirty = false;
+        public partial bool IsDirty { get; set; }
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(ScheduleEnabled))]
-        private LightMode mode;
+        public partial LightMode Mode { get; set; }
 
         [ObservableProperty]
-        private TimeOnly scheduleLightsOn;
+        [NotifyPropertyChangedFor(nameof(ScheduleLightsOnTimeSpan))]
+        public partial TimeOnly ScheduleLightsOn { get; set; }
 
         [ObservableProperty]
-        private TimeOnly scheduleLightsOff;
+        [NotifyPropertyChangedFor(nameof(ScheduleLightsOffTimeSpan))]
+        public partial TimeOnly ScheduleLightsOff { get; set; }
 
+        [ObservableProperty]
+        public partial bool CloseToTray { get; set; } = true;
 
-        public bool ScheduleEnabled { get => Mode == LightMode.Schedule; }
+        [ObservableProperty]
+        public partial bool StartMinimized { get; set; }
+
+        // WinUI 3 TimePicker uses TimeSpan?, not TimeOnly
+        public TimeSpan? ScheduleLightsOnTimeSpan
+        {
+            get => ScheduleLightsOn.ToTimeSpan();
+            set { if (value.HasValue) ScheduleLightsOn = TimeOnly.FromTimeSpan(value.Value); }
+        }
+
+        public TimeSpan? ScheduleLightsOffTimeSpan
+        {
+            get => ScheduleLightsOff.ToTimeSpan();
+            set { if (value.HasValue) ScheduleLightsOff = TimeOnly.FromTimeSpan(value.Value); }
+        }
+
+        public bool ScheduleEnabled => Mode == LightMode.Schedule;
 
         public IEnumerable<LightMode> LightModes { get; private set; }
 
         public SettingsViewModel(IOptionsMonitor<LightOptions> optionsMonitor, ISettingsFileProvider settingsFileProvider, ILogger<SettingsViewModel> logger)
         {
-            ArgumentNullException.ThrowIfNull(nameof(optionsMonitor));
-            ArgumentNullException.ThrowIfNull(nameof(settingsFileProvider));
+            ArgumentNullException.ThrowIfNull(optionsMonitor);
+            ArgumentNullException.ThrowIfNull(settingsFileProvider);
 
             _optionsMonitor = optionsMonitor;
             _settingsFileProvider = settingsFileProvider;
             _logger = logger;
 
             UpdateOptions(_optionsMonitor.CurrentValue);
-
             LightModes = Enum.GetValues(typeof(LightMode)).Cast<LightMode>();
-
             _optionsMonitor.OnChange(UpdateOptions);
 
             PropertyChanged += OptionsChanged;
         }
 
-        public bool CanSaveOrCancel()
-        {
-            return IsDirty;
-        }
+        public bool CanSaveOrCancel() => IsDirty;
 
         [RelayCommand(CanExecute = nameof(CanSaveOrCancel))]
         public void SaveChanges()
@@ -72,6 +86,8 @@ namespace AuraScheduler.UI
             options.LightMode = Mode;
             options.Schedule.LightsOn = ScheduleLightsOn;
             options.Schedule.LightsOff = ScheduleLightsOff;
+            options.CloseToTray = CloseToTray;
+            options.StartMinimized = StartMinimized;
 
             if (_settingsFileProvider.UpdateSettingsFile(options))
             {
@@ -94,11 +110,11 @@ namespace AuraScheduler.UI
         private void UpdateOptions(LightOptions updatedOptions)
         {
             _skipMarkDirty = true;
-
             Mode = updatedOptions.LightMode;
             ScheduleLightsOn = updatedOptions.Schedule.LightsOn;
             ScheduleLightsOff = updatedOptions.Schedule.LightsOff;
-
+            CloseToTray = updatedOptions.CloseToTray;
+            StartMinimized = updatedOptions.StartMinimized;
             _skipMarkDirty = false;
         }
 
@@ -106,7 +122,6 @@ namespace AuraScheduler.UI
         {
             if (_skipMarkDirty || e.PropertyName == nameof(IsDirty))
                 return;
-
             IsDirty = true;
         }
     }

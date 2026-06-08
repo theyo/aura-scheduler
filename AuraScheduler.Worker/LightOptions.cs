@@ -25,6 +25,10 @@ namespace AuraScheduler.Worker
 
         public LEDSchedule Schedule { get; set; } = new LEDSchedule();
 
+        public bool CloseToTray { get; set; } = true;
+
+        public bool StartMinimized { get; set; } = false;
+
         public bool ShouldLightsBeOn(TimeOnly timeToCheck)
         {
             bool lightsOn;

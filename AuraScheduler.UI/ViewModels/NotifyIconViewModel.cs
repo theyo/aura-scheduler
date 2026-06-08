@@ -1,88 +1,53 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Input;
-
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Xaml;
 
 namespace AuraScheduler.UI
 {
     public partial class NotifyIconViewModel : ObservableObject
     {
+        private MainWindow? _window;
+
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(ShowWindowCommand))]
         [NotifyCanExecuteChangedFor(nameof(HideWindowCommand))]
-        private WindowState _windowState;
+        public partial bool IsWindowVisible { get; set; } = true;
 
-        public NotifyIconViewModel()
+        public void SetWindow(MainWindow window)
         {
-            WindowState = Application.Current?.MainWindow?.WindowState ?? WindowState.Normal;
+            _window = window;
+            IsWindowVisible = true;
         }
 
         [RelayCommand(CanExecute = nameof(CanShowWindow))]
         public virtual void ShowWindow()
         {
-            var window = Application.Current.MainWindow;
+            if (_window is null)
+                return;
 
-            if (window is not null)
-            {
-                window.Show();
-                window.WindowState = WindowState.Normal;
-                window.Focus();
-
-                WindowState = window.WindowState;
-            }
+            _window.AppWindow.Show();
+            _window.Activate();
+            IsWindowVisible = true;
         }
-
 
         [RelayCommand(CanExecute = nameof(CanHideWindow))]
         public virtual void HideWindow()
         {
-            var window = Application.Current.MainWindow;
+            if (_window is null)
+                return;
 
-            if (window is not null)
-            {
-                window.WindowState = WindowState.Minimized;
-                window.Hide();
-
-                WindowState = window.WindowState;
-            }
+            _window.AppWindow.Hide();
+            IsWindowVisible = false;
         }
 
         [RelayCommand]
         public virtual void ExitApplication()
         {
-            Application.Current.Shutdown();
+            Application.Current.Exit();
         }
 
-        private bool CanHideWindow()
-        {
-            var window = Application.Current.MainWindow;
-
-            if (window is not null)
-            {
-                return window.WindowState == WindowState.Normal;
-            }
-
-            return false;
-        }
-
-        private bool CanShowWindow()
-        {
-            var window = Application.Current.MainWindow;
-
-            if (window is not null)
-            {
-                return window.WindowState == WindowState.Minimized;
-            }
-
-            return false;
-        }
+        private bool CanShowWindow() => !IsWindowVisible;
+        private bool CanHideWindow() => IsWindowVisible;
     }
 }

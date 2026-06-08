@@ -1,50 +1,115 @@
-﻿using System.IO;
-using System.Reflection;
-using System.Windows;
+using AuraScheduler.UI.Infrastructure;
+using AuraScheduler.Worker;
 
-
-using ControlzEx.Theming;
-using Hardcodet.Wpf.TaskbarNotification;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 
 namespace AuraScheduler.UI
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
     public partial class App : Application
     {
-        private TaskbarIcon? taskbarIcon;
-        private NotifyIconViewModel? notifyIconVM;
+        private readonly IHost _host;
+        private TrayIcon? _trayIcon;
 
-        public App()
+        public App(IHost host)
         {
+            _host = host;
             InitializeComponent();
         }
 
-        public void SetTaskBarIconViewModel(NotifyIconViewModel notifyIconViewModel)
+        protected override async void OnLaunched(LaunchActivatedEventArgs args)
         {
-            notifyIconVM = notifyIconViewModel;
+            var mainWindow = _host.Services.GetRequiredService<MainWindow>();
+            var notifyIconVM = _host.Services.GetRequiredService<NotifyIconViewModel>();
+            notifyIconVM.SetWindow(mainWindow);
+
+            var logProvider = _host.Services.GetServices<Microsoft.Extensions.Logging.ILoggerProvider>()
+                .OfType<ObservableLoggerProvider>()
+                .FirstOrDefault();
+            logProvider?.SetDispatcherQueue(Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread());
+
+            _trayIcon = CreateTrayIcon(notifyIconVM);
+
+            var options = _host.Services.GetRequiredService<IOptionsMonitor<LightOptions>>().CurrentValue;
+            if (options.StartMinimized)
+                notifyIconVM.IsWindowVisible = false; // stay hidden; correct the state set by SetWindow
+            else
+                mainWindow.Activate();
+
+            // Start the host on a ThreadPool (MTA) thread instead of the WinUI3 ASTA UI thread.
+            await Task.Run(async () =>
+            {
+                try
+                {
+                    await _host.StartAsync();
+                }
+                catch (Exception ex)
+                {
+                    var logger = _host.Services.GetRequiredService<ILoggerFactory>().CreateLogger<App>();
+                    logger.LogCritical(ex, "Host failed to start: {message}", ex.Message);
+                }
+            });
+
+            var auraStatus = _host.Services.GetRequiredService<AuraInitializationStatus>();
+            try
+            {
+                var auraInitError = await auraStatus.Awaitable.WaitAsync(TimeSpan.FromSeconds(10));
+                if (auraInitError is not null)
+                    await ShowAuraErrorDialogAsync(mainWindow, auraInitError);
+            }
+            catch (TimeoutException)
+            {
+                // Worker took longer than 10 s to signal — unusual; don't block the UI.
+            }
         }
 
-        protected override void OnStartup(StartupEventArgs e)
+        private static async Task ShowAuraErrorDialogAsync(MainWindow mainWindow, Exception _)
         {
-            ThemeManager.Current.ThemeSyncMode = ThemeSyncMode.SyncWithAppMode;
-            ThemeManager.Current.SyncTheme();
+            mainWindow.Activate();
 
-            base.OnStartup(e);
+            var xamlRoot = mainWindow.Content?.XamlRoot;
+            if (xamlRoot is null)
+                return; // no XAML tree yet — dialog can't be shown
 
-            //initialize NotifyIcon
-            taskbarIcon = (TaskbarIcon)FindResource("MyNotifyIcon");
+            var dialog = new ContentDialog
+            {
+                Title = "AURA SDK not available",
+                Content =
+                    "Could not connect to the AURA service.\n\n" +
+                    "Make sure ARMOURY CRATE (or ASUS AURA) is installed.\n\n" +
+                    "The app will continue running, but light scheduling is unavailable. " +
+                    "See the Activity Log for details.",
+                CloseButtonText = "OK",
+                DefaultButton = ContentDialogButton.Close,
+                XamlRoot = xamlRoot,
+            };
 
-            taskbarIcon.DataContext = notifyIconVM;
-
+            await dialog.ShowAsync();
         }
 
-        protected override void OnExit(ExitEventArgs e)
+        private static TrayIcon CreateTrayIcon(NotifyIconViewModel vm)
         {
-            taskbarIcon?.Dispose();
+            var iconPath = Path.Combine(AppContext.BaseDirectory, "icon.ico");
+            var icon = new TrayIcon("AURA Scheduler", iconPath);
 
-            base.OnExit(e);
+            icon.AddMenuItem("Show Window", () => vm.ShowWindowCommand.Execute(null));
+            icon.AddMenuItem("Hide Window", () => vm.HideWindowCommand.Execute(null));
+            icon.AddSeparator();
+            icon.AddMenuItem("Exit", () => vm.ExitApplicationCommand.Execute(null));
+
+            icon.DoubleClicked += () => vm.ShowWindowCommand.Execute(null);
+
+            return icon;
+        }
+
+        public async Task StopAsync()
+        {
+            _trayIcon?.Dispose();
+            await _host.StopAsync();
         }
     }
 }

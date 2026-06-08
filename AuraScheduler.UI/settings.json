@@ -1,15 +1,11 @@
 {
-  "Logging": {
-    "LogLevel": {
-      "Default": "Debug",
-      "Microsoft.Hosting.Lifetime": "Information"
-    }
-  },
   "LightOptions": {
     "LightMode": "Schedule",
     "Schedule": {
       "LightsOn": "07:30:00",
       "LightsOff": "21:30:00"
-    }
+    },
+    "CloseToTray": true,
+    "StartMinimized": false
   }
 }

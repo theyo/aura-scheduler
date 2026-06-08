@@ -1,8 +1,11 @@
 using System.Drawing;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 using AuraScheduler.Worker.Aura;
 
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace AuraScheduler.Worker
@@ -11,10 +14,11 @@ namespace AuraScheduler.Worker
     {
         private readonly ILogger<AuraScheduleWorker> _logger;
         private readonly IOptionsMonitor<LightOptions> _lightOptionsMonitor;
+        private readonly AuraInitializationStatus _initStatus;
 
-        private readonly AuraHelper _auraHelper;
+        private AuraHelper? _auraHelper;
 
-        private readonly IDisposable? _settingsChangeEvent;
+        private IDisposable? _settingsChangeEvent;
 
         private readonly TimeSpan _defaultTimeSpan = TimeSpan.FromSeconds(1);
 
@@ -22,15 +26,15 @@ namespace AuraScheduler.Worker
 
         private readonly PeriodicTimer _timer;
 
-        public AuraScheduleWorker(ILogger<AuraScheduleWorker> logger, IOptionsMonitor<LightOptions> optionsMonitor)
+        public AuraScheduleWorker(
+            ILogger<AuraScheduleWorker> logger,
+            IOptionsMonitor<LightOptions> optionsMonitor,
+            AuraInitializationStatus initStatus)
         {
             _logger = logger;
             _lightOptionsMonitor = optionsMonitor;
+            _initStatus = initStatus;
             _timer = new PeriodicTimer(_defaultTimeSpan);
-
-            _settingsChangeEvent = _lightOptionsMonitor.OnChange(UpdateLightsAndSetTimer);
-
-            _auraHelper = new AuraHelper();
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -39,6 +43,16 @@ namespace AuraScheduler.Worker
 
             try
             {
+                // This COM call throws COMException (class not registered) when
+                // ARMOURY CRATE / AURA service is not installed.
+                _auraHelper = new AuraHelper();
+
+                // Only subscribe to settings changes once AURA is ready, so
+                // UpdateLightsAndSetTimer is never called with a null _auraHelper.
+                _settingsChangeEvent = _lightOptionsMonitor.OnChange(UpdateLightsAndSetTimer);
+
+                _initStatus.SignalSuccess();
+
                 CheckAndSetLights(_lightOptionsMonitor.CurrentValue);
 
                 _logger.LogInformation("Worker running!");
@@ -51,6 +65,15 @@ namespace AuraScheduler.Worker
                     }
                 }
             }
+            catch (COMException ex)
+            {
+                _logger.LogError(ex,
+                    "Failed to initialise the AURA SDK (HRESULT {hresult:X8}). " +
+                    "Is ARMOURY CRATE installed? Light scheduling is unavailable.",
+                    (uint)ex.HResult);
+
+                _initStatus.SignalFailure(ex);
+            }
             catch (TaskCanceledException)
             {
                 // When the stopping token is canceled, for example, a call made from services.msc,
@@ -59,6 +82,8 @@ namespace AuraScheduler.Worker
             catch (Exception ex)
             {
                 _logger.LogError(ex, "{message}", ex.Message);
+
+                _initStatus.SignalFailure(ex);
 
                 // Terminates this process and returns an exit code to the operating system.
                 // This is required to avoid the 'BackgroundServiceExceptionBehavior', which
@@ -76,7 +101,7 @@ namespace AuraScheduler.Worker
                 // always release when the program ends
                 _logger.LogInformation("Worker shutting down, releasing control");
 
-                _auraHelper.ReleaseControl();
+                _auraHelper?.ReleaseControl();
 
                 _settingsChangeEvent?.Dispose();
             }
@@ -84,6 +109,9 @@ namespace AuraScheduler.Worker
 
         private void CheckAndSetLights(LightOptions options)
         {
+            if (_auraHelper is null)
+                return;
+
             var now = TimeOnly.FromDateTime(DateTime.Now);
 
             var lightsShouldBeOn = options.ShouldLightsBeOn(now);
