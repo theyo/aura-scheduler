@@ -1,0 +1,90 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:bal="http://wixtoolset.org/schemas/v4/wxs/bal"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+
+  <!--
+    Burn bootstrapper bundle (AURAScheduler.Setup.exe) — the recommended,
+    self-installing entry point.
+
+    Architecture: "exe + msi side by side"
+      - AURAScheduler.Setup.exe (this bundle): installs .NET 10 Desktop
+        Runtime and Windows App Runtime 2.1 via the ExePackage entries in
+        the Chain, then installs AURAScheduler.Setup.msi. .NET 10 has a
+        DetectCondition (searches below) and is skipped when already
+        present; Windows App Runtime 2.1 has none and always runs (its
+        own installer is idempotent — see the comment on that ExePackage).
+      - AURAScheduler.Setup.msi: contains ONLY the application files and
+        installs no prerequisites. See Package.wxs for the Launch
+        condition shown if it's run standalone on a machine missing
+        .NET 10.
+
+    Neither prerequisite is embedded — both are fetched at install time,
+    so this bundle stays small (~25 MB, basically just the bootstrapper +
+    the MSI)
+  -->
+
+  <Bundle Name="AURA Scheduler"
+          Version="$(Version)"
+          Manufacturer="TheYo"
+          UpgradeCode="3F7C9A2E-8B5D-4F1C-A2E7-9C4B6D3F8A1E"
+          ProviderKey="TheYo.AURAScheduler"
+          IconSourceFile="..\..\icon.ico">
+
+    <BootstrapperApplication>
+      <bal:WixStandardBootstrapperApplication Theme="hyperlinkLicense"
+                                              ThemeFile="Theme\Theme.xml"
+                                              LocalizationFile="Theme\Theme.wxl"
+                                              LogoFile="Theme\logo.png"
+                                              LicenseUrl="" />
+	</BootstrapperApplication>
+
+    <util:DirectorySearch Id="Dotnet10DirSearch"
+                          Variable="Dotnet10Installed"
+                          Path="[ProgramFiles64Folder]dotnet\shared\Microsoft.WindowsDesktop.App\10.0.8"
+                          Result="exists" />
+
+    <Chain>
+
+      <ExePackage Id="InstallDotNet10"
+                  DisplayName=".NET 10 Desktop Runtime"
+                  InstallArguments="/install /quiet /norestart"
+                  RepairArguments="/repair /quiet /norestart"
+                  UninstallArguments="/uninstall /quiet /norestart"
+                  Permanent="yes"
+                  Vital="yes"
+                  DetectCondition="Dotnet10Installed">
+        <ExePackagePayload Name="windowsdesktop-runtime-10.0.8-win-x64.exe"
+                           DownloadUrl="https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/10.0.8/windowsdesktop-runtime-10.0.8-win-x64.exe"
+                           Hash="8DDE7D1FE5D1934D386C01AC208E1A9DEBC1AFA2448C5404E969C3BDEE36B2DBAA9CFF999452BD26181659F27F3EEFFE200AC223C26A2196DC563BEF0536CA1E"
+                           Size="59968752" />
+      </ExePackage>
+
+      <!--
+        Unlike .NET 10 above, this one is fetched by a small wrapper script
+        (DownloadAndInstallWinAppRuntime21.cmd) rather than a hash-pinned
+        ExePackagePayload: the aka.ms/windowsappsdk/2.1/2.1.3 link's content
+        has been observed to change size in place (i.e. it's not an
+        immutable per-version URL), which would make a pinned Hash go stale
+        unpredictably. The script always grabs "latest" from that link and
+        runs it quietly; since 2.1.x is backwards compatible, "latest"
+        satisfies the >= 2.1.3 requirement regardless of which exact build
+        it resolves to.
+        Permanent="yes" for the same reason as above.
+
+        No DetectCondition: see the prerequisite-detection comment above —
+        there's no reliable existence check for the MSIX-based runtime, so
+        Burn always runs this (the underlying installer is idempotent).
+      -->
+      <ExePackage Id="InstallWinAppRuntime21"
+                  DisplayName="Windows App Runtime 2.1"
+                  SourceFile="DownloadAndInstallWinAppRuntime21.cmd"
+                  Permanent="yes"
+                  Vital="yes" />
+
+      <MsiPackage Id="AURASchedulerMsi"
+                  SourceFile="AURAScheduler.Setup.msi"
+                  Vital="yes" />
+
+    </Chain>
+  </Bundle>
+</Wix>

@@ -3,7 +3,7 @@
 	<Fragment>
 		<ComponentGroup Id="AURASchedulerUIComponents" Directory="INSTALLFOLDER">
 			<Component Guid="928446c2-9c57-4dd6-9b7e-da491d6f044c" Bitness="always64">
-				<File Id="AURASchedulerUIApp" Source="AuraScheduler.UI.exe" />
+				<File Id="AURASchedulerUIApp" Source="AuraScheduler.UI.exe" KeyPath="yes" />
 				<File Source="appsettings.json" />
 				<File Source="settings.json" />
 				<File Source="icon.ico" />
@@ -11,23 +11,17 @@
 				<Shortcut Name="AURA Scheduler" Directory="StartupFolder" Advertise="yes" Icon="AuraScheduler.UI.exe" />
 			</Component>
 
-			<!--<Component Directory="DesktopFolder" Condition="ENABLEDESKTOPSHORTCUT">
-				<RegistryValue Root="HKCU" Key="SOFTWARE\TheYo\AURAScheduler" Name="DesktopShortcutEnabled" Value="1" />
-
-				<Shortcut Name="AURA Scheduler" Directory="DesktopFolder"
-						  Target="[#AURASchedulerUIApp]" Icon="AuraScheduler.UI.exe" />
-			</Component>-->
 
 		</ComponentGroup>
 
 		<Icon Id="AuraScheduler.UI.exe" SourceFile="..\icon.ico"/>
 
 		<CustomAction Id="EXECUTE_AFTER_FINALIZE"
-              Execute="immediate"
-              Impersonate="yes"
-              Return="asyncNoWait"
-              FileRef="AURASchedulerUIApp"
-              ExeCommand="" />
+		              Execute="immediate"
+		              Impersonate="yes"
+		              Return="asyncNoWait"
+		              FileRef="AURASchedulerUIApp"
+		              ExeCommand="" />
 
 		<InstallExecuteSequence>
 			<Custom Action="EXECUTE_AFTER_FINALIZE" After="InstallFinalize"></Custom>

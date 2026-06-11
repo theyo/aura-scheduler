@@ -1,0 +1,31 @@
+<Project Sdk="WixToolset.Sdk/7.0.0">
+	<PropertyGroup>
+		<OutputType>Bundle</OutputType>
+		<DefineConstants>Version=$(BuildVersion)</DefineConstants>
+		<OutputName>AURAScheduler.Setup</OutputName>
+		<Platforms>x64</Platforms>
+		<Platform Condition="'$(Platform)' == ''">x64</Platform>
+		<!-- WiX v7 requires accepting the OSMF EULA; fee applies only to
+		     revenue-generating businesses. https://wixtoolset.org/osmf/
+		     This property suppresses the MSBuild-level check.  The wix.exe
+		     tool also requires a per-machine acceptance file; run once:
+		       wix eula accept wix7
+		     (the file is written to %USERPROFILE%\.wix\wix7-osmf-eula.txt) -->
+		<AcceptEula>true</AcceptEula>
+		<!-- WIX1161: "DetectCondition or ArpEntry recommended" for the
+		     InstallWinAppRuntime21 ExePackage in Bundle.wxs. Deliberately
+		     absent — see the comments on that ExePackage and on the
+		     Dotnet10DirSearch util:DirectorySearch above it for why no
+		     reliable detection mechanism exists for Windows App Runtime 2.1
+		     (it deploys per-user MSIX packages with no registry/ARP/file
+		     footprint to search for). -->
+		<SuppressSpecificWarnings>1161</SuppressSpecificWarnings>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="WixToolset.BootstrapperApplications.wixext" Version="7.0.0" />
+		<PackageReference Include="WixToolset.Util.wixext" Version="7.0.0" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Setup.wixproj" />
+	</ItemGroup>
+</Project>

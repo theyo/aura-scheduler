@@ -1,10 +1,49 @@
-﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
 	<Package Name="AURA Scheduler" Manufacturer="TheYo" Version="$(Version)" UpgradeCode="264899C9-951A-4545-9D88-DAB9E2E95FC8" Scope="perMachine">
-		<MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)" />
+		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 
 		<Property Id="ARPPRODUCTICON" Value="AuraScheduler.UI.exe" />
 
 		<MediaTemplate EmbedCab="yes"/>
+
+		<!--
+		  Prerequisite check (informational guard rail only).
+
+		  This MSI installs ONLY the application files — it does not install
+		  .NET 10 Desktop Runtime or Windows App Runtime 2.1. The recommended
+		  installer is AURAScheduler.Setup.exe (the Burn bootstrapper, see
+		  Setup\Bundle\Bundle.wxs), which installs both prerequisites
+		  automatically before chaining to this MSI.
+
+		  If this MSI is run standalone (e.g. AURAScheduler.Setup.msi directly)
+		  on a machine missing .NET 10, the Launch condition below stops the
+		  install with a message pointing the user at the .exe instead of
+		  silently installing an app that won't run.
+
+		  This check is deliberately loose (existence-only, not version- or
+		  patch-specific) since a false negative here would block an install
+		  that would actually work fine — unlike the Bundle's stricter
+		  DetectCondition search, where a false negative just causes a
+		  harmless redundant (idempotent) re-install attempt.
+
+		  There is no equivalent check for Windows App Runtime 2.1: it's
+		  deployed as per-user MSIX packages, not a registry key or Program
+		  Files folder, so there's no reliable existence check available to
+		  an MSI Launch condition (a previous attempt using
+		  HKLM\SOFTWARE\Microsoft\WindowsAppRuntime\2.1 was always false —
+		  that key is never created — which always blocked installs even when
+		  Windows App Runtime 2.1 was present and working).
+		-->
+		<Property Id="DOTNET10INSTALLED">
+			<DirectorySearch Id="DotNet10DirSearch"
+			                 Path="[ProgramFiles64Folder]dotnet\shared\Microsoft.WindowsDesktop.App" />
+		</Property>
+
+		<!-- "Installed" is set by the MSI engine on maintenance/uninstall runs
+		     of an already-installed product, so this condition only applies
+		     to first-time installs. -->
+		<Launch Condition="Installed OR DOTNET10INSTALLED"
+		        Message="AURA Scheduler requires .NET 10 Desktop Runtime, which was not found. Run AURAScheduler.Setup.exe instead — it detects and installs missing prerequisites automatically." />
 
 		<Feature Id="Main" Title="AURA Scheduler">
 			<ComponentGroupRef Id="AURASchedulerUIComponents"/>

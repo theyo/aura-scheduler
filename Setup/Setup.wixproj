@@ -1,10 +1,38 @@
-﻿<Project Sdk="WixToolset.Sdk/4.0.0">
+﻿<Project Sdk="WixToolset.Sdk/7.0.0">
 	<PropertyGroup>
 		<DefineConstants>Version=$(BuildVersion)</DefineConstants>
 		<OutputName>AURAScheduler.$(MSBuildProjectName)</OutputName>
 		<Platforms>x64</Platforms>
 		<Platform Condition="'$(Platform)' == '' ">x64</Platform>
+		<!-- WiX v7 requires accepting the OSMF EULA; fee applies only to
+		     revenue-generating businesses. https://wixtoolset.org/osmf/
+		     This property suppresses the MSBuild-level check.  The wix.exe
+		     tool also requires a per-machine acceptance file; run once:
+		       wix eula accept wix7
+		     (the file is written to %USERPROFILE%\.wix\wix7-osmf-eula.txt) -->
+		<AcceptEula>true</AcceptEula>
 	</PropertyGroup>
+	<PropertyGroup>
+		<!-- The WiX SDK default glob is <Compile Include="**/*.wxs"> in wix.targets.
+		     Because wix.targets is imported after the project body, a <Compile Remove>
+		     in the project has no effect (the glob hasn't run yet when Remove is
+		     evaluated).  Disabling the default glob and using a shallow *.wxs pattern
+		     instead keeps Bundle\Bundle.wxs out of the MSI compilation cleanly. -->
+		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+		<!-- WiX 7: the BootstrapperApplications.wixext NuGet package ships .wxl
+		     localization files that the default embedded-resource glob picks up in
+		     any project, including this MSI project that doesn't use them.  That
+		     causes WIX0100 "duplicated localization identifier" errors.  This MSI
+		     has no localization files of its own, so disabling the default is safe. -->
+		<EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+	</PropertyGroup>
+	<ItemGroup>
+		<!-- Shallow glob: picks up all WXS files in the Setup root directory only.
+		     Bundle\Bundle.wxs lives in a subdirectory and is intentionally excluded —
+		     it uses WiX extensions (BAL, NetFx, Util) that are only referenced in
+		     Bundle.wixproj, not here. -->
+		<Compile Include="*.wxs" />
+	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\AuraScheduler.UI\AuraScheduler.UI.csproj" publish="true" />
 	</ItemGroup>

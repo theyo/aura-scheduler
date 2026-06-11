@@ -25,7 +25,14 @@ namespace AuraScheduler.UI
             // the bootstrapper needs to know where to find the bundled Windows App Runtime
             // before any WinRT/WinAppSDK API is touched, so this must be the very first thing
             // that runs in Main.
+            //
+            // When the app is framework-dependent (the default) the runtime is located via the
+            // Windows App Runtime system installation and this variable must NOT be set —
+            // pointing it at AppContext.BaseDirectory (a temp extraction dir) would confuse the
+            // bootstrapper and prevent the system runtime from being found.
+#if WINAPPRUNTIME_SELFCONTAINED
             Environment.SetEnvironmentVariable("MICROSOFT_WINDOWSAPPRUNTIME_BASE_DIRECTORY", AppContext.BaseDirectory);
+#endif
 
             var builder = Host.CreateApplicationBuilder(args);
 

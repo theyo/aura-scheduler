@@ -12,15 +12,51 @@
 		<PlatformTarget>x64</PlatformTarget>
 		<Platforms>x64</Platforms>
 		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
-		<PublishSingleFile Condition="'$(Configuration)' == 'Release'">true</PublishSingleFile>
-		<EnableMsixTooling Condition="'$(Configuration)' == 'Release'">true</EnableMsixTooling>
-		<!-- Bundle the .NET runtime AND the Windows App Runtime into the published output so the
-		     installed app runs on a clean machine without requiring .NET 10 or the Windows App
-		     Runtime to be installed/bootstrapped first (avoids the "Required components of the
-		     Windows App Runtime are missing" prompt on first launch). -->
-		<SelfContained Condition="'$(Configuration)' == 'Release'">true</SelfContained>
-		<WindowsAppSDKSelfContained Condition="'$(Configuration)' == 'Release'">true</WindowsAppSDKSelfContained>
-		<ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
+		<!-- Framework-dependent single-file publish.
+		     All managed DLLs (WinUI projections, CommunityToolkit, Extensions…) are
+		     embedded into the single exe.  Native WinAppRuntime DLLs (DirectML.dll,
+		     onnxruntime.dll, WebView2Loader.dll …) are resolved from the system-
+		     installed Windows App Runtime — the Burn bootstrap installs it before
+		     the MSI runs, so they are never needed locally.
+
+		     Result: ~81 MB exe + 3 loose config/icon files.  WiX MSI stays simple
+		     with only 4 explicit <File> entries.
+
+		     EnableMsixTooling=true is required by microsoft.windowsappsdk.base for
+		     embedded resources.pri generation; without it the publish is a hard error.
+
+		     WindowsAppSDKSingleFileVerifyConfiguration=false disables the SDK's
+		     advisory check target (WindowsAppSDKSingleFileVerifyConfiguration in
+		     Microsoft.WindowsAppSDK.SingleFile.targets).  That target emits two
+		     un-coded warnings when SelfContained/WindowsAppSDKSelfContained are not
+		     true — but those warnings are only relevant to the self-contained model
+		     where runtime DLLs are bundled locally, which is not our approach.  All
+		     three error conditions guarded by that target (EnableMsixTooling,
+		     WindowsPackageType=None, IncludeAllContentForSelfExtract) are already
+		     satisfied by the properties below, so disabling the target is safe.
+
+		     WindowsAppSdkUndockedRegFreeWinRTInitialize=true signals that WinRT
+		     activation is handled — in our case by the Burn-installed system runtime,
+		     NOT by setting MICROSOFT_WINDOWSAPPRUNTIME_BASE_DIRECTORY in code.
+		     (In SDK 2.1.x the main WindowsAppSDK.targets is empty, so this property
+		     has no additional build side-effects; it is purely documentary here.)
+
+		     The WINAPPRUNTIME_SELFCONTAINED guard in Program.cs ensures we do NOT set
+		     MICROSOFT_WINDOWSAPPRUNTIME_BASE_DIRECTORY — for framework-dependent
+		     deployment the bootstrapper locates the system runtime on its own.
+
+		     To switch back to fully self-contained single-file (~210 MB, no prereqs):
+		       1. Set SelfContained=true, WindowsAppSDKSelfContained=true below.
+		       2. Remove WindowsAppSDKSingleFileVerifyConfiguration and
+		          WindowsAppSdkUndockedRegFreeWinRTInitialize (no longer needed).
+		       3. The WINAPPRUNTIME_SELFCONTAINED #if guard activates automatically. -->
+		<PublishSingleFile>true</PublishSingleFile>
+		<EnableMsixTooling>true</EnableMsixTooling>
+		<WindowsAppSDKSingleFileVerifyConfiguration>false</WindowsAppSDKSingleFileVerifyConfiguration>
+		<WindowsAppSdkUndockedRegFreeWinRTInitialize>true</WindowsAppSdkUndockedRegFreeWinRTInitialize>
+		<!-- <SelfContained>true</SelfContained> -->
+		<!-- <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained> -->
+		<DefineConstants Condition="'$(WindowsAppSDKSelfContained)' == 'true'">$(DefineConstants);WINAPPRUNTIME_SELFCONTAINED</DefineConstants>
 		<StartupObject>AuraScheduler.UI.Program</StartupObject>
 		<RootNamespace>AuraScheduler.UI</RootNamespace>
 		<DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
