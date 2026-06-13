@@ -1,0 +1,43 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Check release doesn't already exist
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        if (gh release view "${{ github.ref_name }}" 2>$null) {
+          Write-Error "Release ${{ github.ref_name }} already exists. Delete it or push a new tag instead of reusing this one."
+          exit 1
+        }
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Extract version from tag
+      id: version
+      run: |
+        $version = "${{ github.ref_name }}" -replace '^v', ''
+        echo "version=$version" >> $env:GITHUB_OUTPUT
+    - name: Build Bundle project
+      run: dotnet build Setup/Bundle/Bundle.wixproj --configuration Release --no-restore -p:VersionSuffix=${{ steps.version.outputs.version }}
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: Setup/Bundle/bin/x64/Release/AURAScheduler.Setup.exe
+        generate_release_notes: true

@@ -17,6 +17,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{D4A0CA6D-294D-4D6E-82A4-CACB2268B76E}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\build.yml = .github\workflows\build.yml
+		.github\workflows\release.yml = .github\workflows\release.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuraScheduler.Worker", "AuraScheduler.Worker\AuraScheduler.Worker.csproj", "{134FCF87-6773-4EB9-8B46-04762EF08938}"
