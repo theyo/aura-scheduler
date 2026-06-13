@@ -1,4 +1,6 @@
 using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 using AuraScheduler.UI.Infrastructure;
 using AuraScheduler.Worker;
@@ -17,6 +19,7 @@ namespace AuraScheduler.UI
     public class Program
     {
         private const string SettingsFileName = "settings.json";
+        private const string LegacySettingsFileName = "LightSettings.json";
         private const string SingleInstanceMutexName = "TheYo.AURAScheduler.SingleInstance";
         private const string ActivateEventName = "TheYo.AURAScheduler.ActivateMainWindow";
 
@@ -78,7 +81,20 @@ namespace AuraScheduler.UI
                     // the exe.  Files marked ExcludeFromSingleFile=true (e.g. settings.json)
                     // are placed next to the exe, so we must use the process path to locate them.
                     var exeDir = Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
-                    File.Copy(Path.Combine(exeDir, SettingsFileName), settingsPath);
+                    var defaultSettingsPath = Path.Combine(exeDir, SettingsFileName);
+
+                    // Upgrading from the pre-WinUI app: carry the user's saved light schedule
+                    // forward from LightSettings.json instead of overwriting it with defaults.
+                    var legacySettingsPath = Path.Combine(settingsFileInfo.DirectoryName!, LegacySettingsFileName);
+                    if (File.Exists(legacySettingsPath))
+                    {
+                        MigrateLegacySettings(legacySettingsPath, defaultSettingsPath, settingsPath);
+                        File.Delete(legacySettingsPath);
+                    }
+                    else
+                    {
+                        File.Copy(defaultSettingsPath, settingsPath);
+                    }
                 }
             }
             else
@@ -119,6 +135,21 @@ namespace AuraScheduler.UI
 
                 new App(host);
             });
+        }
+
+        private static void MigrateLegacySettings(string legacySettingsPath, string defaultSettingsPath, string destinationPath)
+        {
+            var settings = JsonNode.Parse(File.ReadAllText(defaultSettingsPath))!.AsObject();
+            var legacy = JsonNode.Parse(File.ReadAllText(legacySettingsPath))!.AsObject();
+
+            if (legacy[nameof(LightOptions)] is JsonObject legacyLightOptions)
+            {
+                var lightOptions = settings[nameof(LightOptions)]!.AsObject();
+                foreach (var (key, value) in legacyLightOptions)
+                    lightOptions[key] = value?.DeepClone();
+            }
+
+            File.WriteAllText(destinationPath, settings.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
         }
     }
 }
