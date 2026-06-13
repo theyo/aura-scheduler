@@ -34,6 +34,8 @@ namespace AuraScheduler.UI
 
             _trayIcon = CreateTrayIcon(notifyIconVM);
 
+            StartActivationListener(notifyIconVM);
+
             var options = _host.Services.GetRequiredService<IOptionsMonitor<LightOptions>>().CurrentValue;
             if (options.StartMinimized)
                 notifyIconVM.IsWindowVisible = false; // stay hidden; correct the state set by SetWindow
@@ -89,6 +91,23 @@ namespace AuraScheduler.UI
             };
 
             await dialog.ShowAsync();
+        }
+
+        private void StartActivationListener(NotifyIconViewModel notifyIconVM)
+        {
+            var activateEvent = _host.Services.GetRequiredService<EventWaitHandle>();
+            var dispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
+
+            // A second launch of the app signals this event instead of starting its own
+            // instance; bring the existing window to the front when that happens.
+            Task.Run(() =>
+            {
+                while (true)
+                {
+                    activateEvent.WaitOne();
+                    dispatcherQueue.TryEnqueue(() => notifyIconVM.ShowWindowCommand.Execute(null));
+                }
+            });
         }
 
         private static TrayIcon CreateTrayIcon(NotifyIconViewModel vm)

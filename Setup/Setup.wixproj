@@ -29,9 +29,12 @@
 	<ItemGroup>
 		<!-- Shallow glob: picks up all WXS files in the Setup root directory only.
 		     Bundle\Bundle.wxs lives in a subdirectory and is intentionally excluded —
-		     it uses WiX extensions (BAL, NetFx, Util) that are only referenced in
+		     it uses WiX extensions (BAL, NetFx) that are only referenced in
 		     Bundle.wixproj, not here. -->
 		<Compile Include="*.wxs" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="WixToolset.Util.wixext" Version="7.0.0" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\AuraScheduler.UI\AuraScheduler.UI.csproj" publish="true" />

@@ -17,10 +17,32 @@ namespace AuraScheduler.UI
     public class Program
     {
         private const string SettingsFileName = "settings.json";
+        private const string SingleInstanceMutexName = "TheYo.AURAScheduler.SingleInstance";
+        private const string ActivateEventName = "TheYo.AURAScheduler.ActivateMainWindow";
 
         [STAThread]
         public static void Main(string[]? args = null)
         {
+            // Only one instance per user session. A second launch signals the running
+            // instance to bring its window to the front, then exits immediately —
+            // before any host/WinUI startup work is done.
+            using var singleInstanceMutex = new Mutex(initiallyOwned: true, SingleInstanceMutexName, out var isFirstInstance);
+            if (!isFirstInstance)
+            {
+                try
+                {
+                    using var existingActivateEvent = EventWaitHandle.OpenExisting(ActivateEventName);
+                    existingActivateEvent.Set();
+                }
+                catch (WaitHandleCannotBeOpenedException)
+                {
+                    // Existing instance hasn't created the event yet; nothing more to do.
+                }
+                return;
+            }
+
+            using var activateEvent = new EventWaitHandle(initialState: false, EventResetMode.AutoReset, ActivateEventName);
+
             // Required for PublishSingleFile + self-contained Windows App SDK deployments:
             // the bootstrapper needs to know where to find the bundled Windows App Runtime
             // before any WinRT/WinAppSDK API is touched, so this must be the very first thing
@@ -77,6 +99,7 @@ namespace AuraScheduler.UI
             builder.Services.AddSingleton<MainWindow>();
             builder.Services.AddSingleton<NotifyIconViewModel>();
             builder.Services.AddSingleton<SettingsViewModel>();
+            builder.Services.AddSingleton(activateEvent);
 
             builder.Logging.ClearProviders();
             builder.Logging.AddObservableLogger();

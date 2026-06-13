@@ -45,6 +45,10 @@
   <String Id="ModifyRepairButton" Value="&amp;Repair" />
   <String Id="ModifyUninstallButton" Value="&amp;Uninstall" />
   <String Id="ModifyCancelButton" Value="&amp;Cancel" />
+
+  <!-- Added for AURA Scheduler: opt-in checkbox on the Modify page (see
+       Theme.xml) offered on both Repair and Uninstall. -->
+  <String Id="RemoveUserDataCheckboxText" Value="Also remove my saved schedule and settings (%LOCALAPPDATA%\TheYo\AURA Scheduler)" />
   <String Id="SuccessHeader" Value="Setup Successful" />
   <String Id="SuccessCacheHeader" Value="Cache Successfully Completed" />
   <String Id="SuccessInstallHeader" Value="Installation Successfully Completed" />

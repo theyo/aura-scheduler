@@ -43,6 +43,8 @@
                           Path="[ProgramFiles64Folder]dotnet\shared\Microsoft.WindowsDesktop.App\10.0.8"
                           Result="exists" />
 
+    <Variable Name="RemoveUserDataCheckbox" Type="numeric" Value="0" Persisted="no" />
+
     <Chain>
 
       <ExePackage Id="InstallDotNet10"
@@ -83,7 +85,9 @@
 
       <MsiPackage Id="AURASchedulerMsi"
                   SourceFile="AURAScheduler.Setup.msi"
-                  Vital="yes" />
+                  Vital="yes">
+        <MsiProperty Name="REMOVEUSERDATA" Value="[RemoveUserDataCheckbox]" />
+      </MsiPackage>
 
     </Chain>
   </Bundle>

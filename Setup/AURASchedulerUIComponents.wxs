@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
 	<Fragment>
+		<Property Id="REMOVEUSERDATA" Secure="yes" />
+
+		<SetProperty Id="UserSettingsFolder" Value="[LocalAppDataFolder]TheYo\AURA Scheduler" Sequence="execute" Before="Wix4RemoveFoldersEx_X64" />
+
 		<ComponentGroup Id="AURASchedulerUIComponents" Directory="INSTALLFOLDER">
 			<Component Guid="928446c2-9c57-4dd6-9b7e-da491d6f044c" Bitness="always64">
 				<File Id="AURASchedulerUIApp" Source="AuraScheduler.UI.exe" KeyPath="yes" />
@@ -9,6 +13,7 @@
 				<File Source="icon.ico" />
 				<Shortcut Name="AURA Scheduler" Directory="ProgramMenuFolder" Advertise="yes" Icon="AuraScheduler.UI.exe" />
 				<Shortcut Name="AURA Scheduler" Directory="StartupFolder" Advertise="yes" Icon="AuraScheduler.UI.exe" />
+				<util:RemoveFolderEx Id="RemoveUserSettingsFolder" On="both" Property="UserSettingsFolder" Condition="REMOVEUSERDATA = 1" />
 			</Component>
 
 

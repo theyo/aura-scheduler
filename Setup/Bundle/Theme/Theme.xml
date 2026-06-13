@@ -88,6 +88,13 @@
         </Page>
         <Page Name="Modify">
             <Label X="11" Y="80" Width="-11" Height="30" FontId="2" DisablePrefix="yes">#(loc.ModifyHeader)</Label>
+            <!-- Opt-in removal of %LOCALAPPDATA%\TheYo\AURA Scheduler
+                 (settings.json). Unchecked by default so Repair/Uninstall
+                 preserve user settings unless explicitly requested. The
+                 control Name binds to the RemoveUserDataCheckbox Burn
+                 variable declared in Bundle.wxs, which is passed to the MSI
+                 via MsiProperty. -->
+            <Checkbox Name="RemoveUserDataCheckbox" X="11" Y="-41" Width="-11" Height="34" TabStop="yes" FontId="3">#(loc.RemoveUserDataCheckboxText)</Checkbox>
             <Button Name="ModifyUpdateButton" X="11" Y="-11" Width="200" Height="23" TabStop="yes" FontId="0" EnableCondition="WixStdBAUpdateAvailable" HideWhenDisabled="yes">#(loc.UpdateButton)</Button>
             <Button Name="RepairButton" X="-171" Y="-11" Width="75" Height="23" TabStop="yes" FontId="0" HideWhenDisabled="yes">#(loc.ModifyRepairButton)</Button>
             <Button Name="UninstallButton" X="-91" Y="-11" Width="75" Height="23" TabStop="yes" FontId="0">#(loc.ModifyUninstallButton)</Button>
