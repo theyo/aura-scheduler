@@ -19,10 +19,12 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        if (gh release view "${{ github.ref_name }}" 2>$null) {
+        gh release view "${{ github.ref_name }}" 2>$null | Out-Null
+        if ($LASTEXITCODE -eq 0) {
           Write-Error "Release ${{ github.ref_name }} already exists. Delete it or push a new tag instead of reusing this one."
           exit 1
         }
+        exit 0
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
