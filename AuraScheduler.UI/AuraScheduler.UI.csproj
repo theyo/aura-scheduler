@@ -19,8 +19,9 @@
 		     installed Windows App Runtime — the Burn bootstrap installs it before
 		     the MSI runs, so they are never needed locally.
 
-		     Result: ~81 MB exe + 3 loose config/icon files.  WiX MSI stays simple
-		     with only 4 explicit <File> entries.
+		     Result: ~81 MB exe + 2 loose config files (icon.ico is embedded in the
+		     exe as a manifest resource).  WiX MSI stays simple with only 3 explicit
+		     <File> entries.
 
 		     EnableMsixTooling=true is required by microsoft.windowsappsdk.base for
 		     embedded resources.pri generation; without it the publish is a hard error.
@@ -80,11 +81,9 @@
 			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 		</Content>
-		<Content Include="icon.ico">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-		</Content>
+		<EmbeddedResource Include="icon.ico">
+			<LogicalName>icon.ico</LogicalName>
+		</EmbeddedResource>
 		<Content Include="settings.json">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>

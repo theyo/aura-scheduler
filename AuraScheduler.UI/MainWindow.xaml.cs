@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Runtime.InteropServices.WindowsRuntime;
 
 using AuraScheduler.UI.Infrastructure;
 
@@ -54,20 +55,14 @@ namespace AuraScheduler.UI
                 SetTitleBar(AppTitleBar);
             }
 
-            var iconPath = Path.Combine(AppContext.BaseDirectory, "icon.ico");
-
-            if (File.Exists(iconPath))
+            var hIcon = AppIcon.ExtractLargeIcon();
+            if (hIcon != IntPtr.Zero)
             {
-                AppWindow.SetIcon(iconPath);
-                try
-                {
-                    TitleBarIcon.Source = new BitmapImage(new Uri(iconPath));
-                }
-                catch
-                {
-                    /* ICO decode fallback — icon still set on taskbar via SetIcon */
-                }
+                AppWindow.SetIcon(Win32Interop.GetIconIdFromIcon(hIcon));
+                AppIcon.DestroyIcon(hIcon);
             }
+
+            _ = LoadTitleBarIconAsync();
 
             AppWindow.Resize(new Windows.Graphics.SizeInt32(960, 640));
             AppWindow.Title = "AURA Scheduler";
@@ -91,6 +86,17 @@ namespace AuraScheduler.UI
                 else
                     Application.Current.Exit();
             };
+        }
+
+        private async Task LoadTitleBarIconAsync()
+        {
+            using var stream = typeof(MainWindow).Assembly.GetManifestResourceStream("icon.ico");
+            if (stream is null)
+                return;
+
+            var bitmap = new BitmapImage();
+            await bitmap.SetSourceAsync(stream.AsRandomAccessStream());
+            TitleBarIcon.Source = bitmap;
         }
 
         private void UpdateCaptionButtonColors(ElementTheme theme)

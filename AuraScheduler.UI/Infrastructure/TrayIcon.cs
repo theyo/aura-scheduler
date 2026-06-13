@@ -24,9 +24,6 @@ namespace AuraScheduler.UI.Infrastructure
         private const uint TPM_RETURNCMD = 0x0100;
         private const uint MF_STRING = 0x00000000;
         private const uint MF_SEPARATOR = 0x00000800;
-        private const int IMAGE_ICON = 1;
-        private const int LR_LOADFROMFILE = 0x0010;
-        private const int LR_DEFAULTSIZE = 0x0040;
 
         // ── P/Invoke ─────────────────────────────────────────────────────────────
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
@@ -81,10 +78,6 @@ namespace AuraScheduler.UI.Infrastructure
         [DllImport("user32.dll")]
         private static extern bool DestroyIcon(IntPtr hIcon);
 
-        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-        private static extern IntPtr LoadImage(IntPtr hinst, string lpszName,
-            uint uType, int cxDesired, int cyDesired, uint fuLoad);
-
         [DllImport("user32.dll")]
         private static extern IntPtr CreatePopupMenu();
 
@@ -119,7 +112,7 @@ namespace AuraScheduler.UI.Infrastructure
 
         public event Action? DoubleClicked;
 
-        public TrayIcon(string tooltip, string? iconPath)
+        public TrayIcon(string tooltip)
         {
             var hInstance = GetModuleHandle(null);
             var className = $"TrayIconWnd_{Guid.NewGuid():N}";
@@ -138,9 +131,7 @@ namespace AuraScheduler.UI.Infrastructure
             // HWND_MESSAGE = -3 creates a message-only window (no taskbar entry, no paint)
             _hWnd = CreateWindowEx(0, className, null, 0, 0, 0, 0, 0, new IntPtr(-3), IntPtr.Zero, hInstance, IntPtr.Zero);
 
-            _hIcon = (iconPath is not null && File.Exists(iconPath))
-                ? LoadImage(IntPtr.Zero, iconPath, IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE)
-                : IntPtr.Zero;
+            _hIcon = AppIcon.ExtractSmallIcon();
 
             var data = BuildNid(tooltip);
             Shell_NotifyIcon(NIM_ADD, ref data);

@@ -112,8 +112,7 @@ namespace AuraScheduler.UI
 
         private static TrayIcon CreateTrayIcon(NotifyIconViewModel vm)
         {
-            var iconPath = Path.Combine(AppContext.BaseDirectory, "icon.ico");
-            var icon = new TrayIcon("AURA Scheduler", iconPath);
+            var icon = new TrayIcon("AURA Scheduler");
 
             icon.AddMenuItem("Show Window", () => vm.ShowWindowCommand.Execute(null));
             icon.AddMenuItem("Hide Window", () => vm.HideWindowCommand.Execute(null));
