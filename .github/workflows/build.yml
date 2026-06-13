@@ -20,6 +20,10 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.0.x
+    - name: Accept WiX Toolset EULA
+      run: |
+        dotnet tool install --global wix --version 7.0.0
+        wix eula accept wix7
     - name: Restore dependencies
       run: dotnet restore
     - name: Build Worker
