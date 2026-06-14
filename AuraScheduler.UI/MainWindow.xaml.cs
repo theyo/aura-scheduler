@@ -58,8 +58,9 @@ namespace AuraScheduler.UI
             var hIcon = AppIcon.ExtractLargeIcon();
             if (hIcon != IntPtr.Zero)
             {
-                AppWindow.SetIcon(Win32Interop.GetIconIdFromIcon(hIcon));
-                AppIcon.DestroyIcon(hIcon);
+                var iconId = Win32Interop.GetIconIdFromIcon(hIcon);
+                AppWindow.SetIcon(iconId);
+                AppWindow.SetTaskbarIcon(iconId);
             }
 
             _ = LoadTitleBarIconAsync();

@@ -12,9 +12,6 @@ namespace AuraScheduler.UI.Infrastructure
         private static extern uint ExtractIconEx(string lpszFile, int nIconIndex,
             IntPtr[]? phiconLarge, IntPtr[]? phiconSmall, uint nIcons);
 
-        [DllImport("user32.dll")]
-        public static extern bool DestroyIcon(IntPtr hIcon);
-
         public static IntPtr ExtractSmallIcon() => Extract(large: false);
 
         public static IntPtr ExtractLargeIcon() => Extract(large: true);
