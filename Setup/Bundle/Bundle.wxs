@@ -1,6 +1,6 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
      xmlns:bal="http://wixtoolset.org/schemas/v4/wxs/bal"
-     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+     xmlns:netfx="http://wixtoolset.org/schemas/v4/wxs/netfx">
 
   <!--
     Burn bootstrapper bundle (AURAScheduler.Setup.exe) — the recommended,
@@ -9,10 +9,10 @@
     Architecture: "exe + msi side by side"
       - AURAScheduler.Setup.exe (this bundle): installs .NET 10 Desktop
         Runtime and Windows App Runtime 2.1 via the ExePackage entries in
-        the Chain, then installs AURAScheduler.Setup.msi. .NET 10 has a
-        DetectCondition (searches below) and is skipped when already
-        present; Windows App Runtime 2.1 has none and always runs (its
-        own installer is idempotent — see the comment on that ExePackage).
+        the Chain, then installs AURAScheduler.Setup.msi. .NET 10 is
+        skipped when a compatible servicing version is already present;
+        Windows App Runtime 2.1 has no detection and always runs (its own
+        installer is idempotent — see the comment on that ExePackage).
       - AURAScheduler.Setup.msi: contains ONLY the application files and
         installs no prerequisites. See Package.wxs for the Launch
         condition shown if it's run standalone on a machine missing
@@ -38,10 +38,18 @@
                                               LicenseUrl="" />
 	</BootstrapperApplication>
 
-    <util:DirectorySearch Id="Dotnet10DirSearch"
-                          Variable="Dotnet10Installed"
-                          Path="[ProgramFiles64Folder]dotnet\shared\Microsoft.WindowsDesktop.App\10.0.8"
-                          Result="exists" />
+    <!--
+      Search the installed desktop runtimes instead of checking for the
+      exact 10.0.8 directory. .NET servicing updates replace older patches,
+      and the 10.0.8 redistributable exits with ERROR_PRODUCT_VERSION (1638)
+      when a newer .NET 10 patch is installed. DotNetCoreSearch returns the
+      latest installed x64 desktop runtime in this major-version family.
+    -->
+    <netfx:DotNetCoreSearch Id="Dotnet10DesktopRuntimeSearch"
+                            Variable="Dotnet10DesktopRuntimeVersion"
+                            RuntimeType="desktop"
+                            Platform="x64"
+                            MajorVersion="10" />
 
     <Variable Name="RemoveUserDataCheckbox" Type="numeric" Value="0" Persisted="no" />
 
@@ -54,7 +62,7 @@
                   UninstallArguments="/uninstall /quiet /norestart"
                   Permanent="yes"
                   Vital="yes"
-                  DetectCondition="Dotnet10Installed">
+                  DetectCondition="Dotnet10DesktopRuntimeVersion &gt;= v10.0.8">
         <ExePackagePayload Name="windowsdesktop-runtime-10.0.8-win-x64.exe"
                            DownloadUrl="https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/10.0.8/windowsdesktop-runtime-10.0.8-win-x64.exe"
                            Hash="8DDE7D1FE5D1934D386C01AC208E1A9DEBC1AFA2448C5404E969C3BDEE36B2DBAA9CFF999452BD26181659F27F3EEFFE200AC223C26A2196DC563BEF0536CA1E"

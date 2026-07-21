@@ -4,7 +4,7 @@
         <Company>TheYo</Company>
 		<Product>AURA Scheduler</Product>
         <Copyright>Copyright © 2026</Copyright>
-		<VersionSuffix>0.1.1</VersionSuffix>
+		<VersionSuffix>0.1.2</VersionSuffix>
 		<AssemblyVersion>$(VersionSuffix)</AssemblyVersion>
 		<Version>$(VersionSuffix)</Version>
 		<BuildVersion>$(VersionSuffix)</BuildVersion>
