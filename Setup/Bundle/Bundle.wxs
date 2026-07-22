@@ -38,18 +38,11 @@
                                               LicenseUrl="" />
 	</BootstrapperApplication>
 
-    <!--
-      Search the installed desktop runtimes instead of checking for the
-      exact 10.0.8 directory. .NET servicing updates replace older patches,
-      and the 10.0.8 redistributable exits with ERROR_PRODUCT_VERSION (1638)
-      when a newer .NET 10 patch is installed. DotNetCoreSearch returns the
-      latest installed x64 desktop runtime in this major-version family.
-    -->
     <netfx:DotNetCoreSearch Id="Dotnet10DesktopRuntimeSearch"
                             Variable="Dotnet10DesktopRuntimeVersion"
                             RuntimeType="desktop"
                             Platform="x64"
-                            MajorVersion="10" />
+                            MajorVersion="10"/>
 
     <Variable Name="RemoveUserDataCheckbox" Type="numeric" Value="0" Persisted="no" />
 
