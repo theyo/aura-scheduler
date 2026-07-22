@@ -8,6 +8,8 @@ Uses the Asus AURA SDK to turn LEDs on/off on a schedule
 ## Requirements
 
 - Windows 11 (build 22000 or later)
+- .NET 10.0.10 Desktop Runtime (or later) — this is installed automatically by the `AURAScheduler.Setup.exe` bootstrapper if it isn't already present
+- Windows App Runtime 2.1 (or later) — this is always downloaded and installed by the `AURAScheduler.Setup.exe` bootstrapper, even if it is already present
 - Asus ARMOURY CRATE (or ASUS AURA) must be installed — this registers the AURA COM service used to control the LEDs
 - An internet connection during installation — `AURAScheduler.Setup.exe` always downloads Windows App Runtime 2.1 (~107 MB), and additionally downloads .NET 10 Desktop Runtime (~57 MB) if it isn't already installed
 
