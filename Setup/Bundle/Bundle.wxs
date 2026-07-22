@@ -62,11 +62,11 @@
                   UninstallArguments="/uninstall /quiet /norestart"
                   Permanent="yes"
                   Vital="yes"
-                  DetectCondition="Dotnet10DesktopRuntimeVersion &gt;= v10.0.8">
-        <ExePackagePayload Name="windowsdesktop-runtime-10.0.8-win-x64.exe"
-                           DownloadUrl="https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/10.0.8/windowsdesktop-runtime-10.0.8-win-x64.exe"
-                           Hash="8DDE7D1FE5D1934D386C01AC208E1A9DEBC1AFA2448C5404E969C3BDEE36B2DBAA9CFF999452BD26181659F27F3EEFFE200AC223C26A2196DC563BEF0536CA1E"
-                           Size="59968752" />
+                  DetectCondition="Dotnet10DesktopRuntimeVersion &gt;= v10.0.10">
+        <ExePackagePayload Name="windowsdesktop-runtime-10.0.10-win-x64.exe"
+                           DownloadUrl="https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/10.0.10/windowsdesktop-runtime-10.0.10-win-x64.exe"
+                           Hash="a5502261c25ba163f35bca7d50611c195e78b8797b16c5bbf2203fbdfff92c0275d36838a3200c08443d2d23a2f6a867c58093d5c239a60dd798a6596df4dc13"
+                           Size="60053808" />
       </ExePackage>
 
       <!--
