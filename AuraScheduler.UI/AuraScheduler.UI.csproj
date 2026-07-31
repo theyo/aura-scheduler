@@ -101,6 +101,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\AuraScheduler.Updates\AuraScheduler.Updates.csproj" />
 		<ProjectReference Include="..\AuraScheduler.Worker\AuraScheduler.Worker.csproj" publish="true" />
 	</ItemGroup>
 

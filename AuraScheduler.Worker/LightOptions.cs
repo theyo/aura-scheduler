@@ -29,6 +29,8 @@ namespace AuraScheduler.Worker
 
         public bool StartMinimized { get; set; } = false;
 
+        public bool CheckForUpdates { get; set; } = true;
+
         public bool ShouldLightsBeOn(TimeOnly timeToCheck)
         {
             bool lightsOn;

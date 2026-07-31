@@ -42,17 +42,28 @@ namespace AuraScheduler.UI
         [ObservableProperty]
         public partial bool StartMinimized { get; set; }
 
+        [ObservableProperty]
+        public partial bool CheckForUpdates { get; set; } = true;
+
         // WinUI 3 TimePicker uses TimeSpan?, not TimeOnly
         public TimeSpan? ScheduleLightsOnTimeSpan
         {
             get => ScheduleLightsOn.ToTimeSpan();
-            set { if (value.HasValue) ScheduleLightsOn = TimeOnly.FromTimeSpan(value.Value); }
+            set
+            {
+                if (value.HasValue)
+                    ScheduleLightsOn = TimeOnly.FromTimeSpan(value.Value);
+            }
         }
 
         public TimeSpan? ScheduleLightsOffTimeSpan
         {
             get => ScheduleLightsOff.ToTimeSpan();
-            set { if (value.HasValue) ScheduleLightsOff = TimeOnly.FromTimeSpan(value.Value); }
+            set
+            {
+                if (value.HasValue)
+                    ScheduleLightsOff = TimeOnly.FromTimeSpan(value.Value);
+            }
         }
 
         public bool ScheduleEnabled => Mode == LightMode.Schedule;
@@ -88,6 +99,7 @@ namespace AuraScheduler.UI
             options.Schedule.LightsOff = ScheduleLightsOff;
             options.CloseToTray = CloseToTray;
             options.StartMinimized = StartMinimized;
+            options.CheckForUpdates = CheckForUpdates;
 
             if (_settingsFileProvider.UpdateSettingsFile(options))
             {
@@ -115,6 +127,7 @@ namespace AuraScheduler.UI
             ScheduleLightsOff = updatedOptions.Schedule.LightsOff;
             CloseToTray = updatedOptions.CloseToTray;
             StartMinimized = updatedOptions.StartMinimized;
+            CheckForUpdates = updatedOptions.CheckForUpdates;
             _skipMarkDirty = false;
         }
 
@@ -122,6 +135,7 @@ namespace AuraScheduler.UI
         {
             if (_skipMarkDirty || e.PropertyName == nameof(IsDirty))
                 return;
+
             IsDirty = true;
         }
     }

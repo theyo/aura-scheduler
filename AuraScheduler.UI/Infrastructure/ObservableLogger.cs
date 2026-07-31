@@ -30,7 +30,9 @@ namespace AuraScheduler.UI.Infrastructure
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
-            if (!IsEnabled(logLevel)) return;
+            if (!IsEnabled(logLevel))
+                return;
+
             ArgumentNullException.ThrowIfNull(formatter);
 
             var shortName = _name.Substring(_name.LastIndexOf('.') + 1);

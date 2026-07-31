@@ -57,7 +57,7 @@ namespace AuraScheduler.Worker
 
                 _logger.LogInformation("Worker running!");
 
-                while (!stoppingToken.IsCancellationRequested && await _timer.WaitForNextTickAsync(_timerCTS.Token))
+                while (!stoppingToken.IsCancellationRequested && await _timer.WaitForNextTickAsync(_timerCTS.Token).ConfigureAwait(false))
                 {
                     if (_lightOptionsMonitor.CurrentValue.ScheduleEnabled)
                     {

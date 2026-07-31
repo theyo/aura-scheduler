@@ -41,12 +41,29 @@
             <Grid x:Name="DashboardPanel" Padding="28,20,28,28">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="16"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
+                <!-- Available update notification -->
+                <InfoBar x:Name="UpdateInfoBar"
+                         Grid.Row="0"
+                         IsOpen="False"
+                         IsClosable="False"
+                         Severity="Informational"
+                         Title="An update is available"
+                         Message="A newer version of AURA Scheduler is available.">
+                    <InfoBar.ActionButton>
+                        <Button x:Name="ViewUpdateButton"
+                                Content="View update"
+                                AutomationProperties.AutomationId="ViewAvailableUpdateButton"
+                                Click="ViewUpdateButton_Click"/>
+                    </InfoBar.ActionButton>
+                </InfoBar>
+
                 <!-- Status cards -->
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12">
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="12" Margin="0,12,0,0">
 
                     <!-- Mode card -->
                     <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -114,7 +131,7 @@
                 </StackPanel>
 
                 <!-- Activity log card -->
-                <Border Grid.Row="2"
+                <Border Grid.Row="3"
                         Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                         BorderThickness="1" CornerRadius="8">
@@ -225,6 +242,31 @@
                                 <ToggleSwitch Header="Start minimized"
                                               IsOn="{Binding SettingsViewModel.StartMinimized, Mode=TwoWay}"
                                               OnContent="On" OffContent="Off"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Updates card -->
+                        <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1" CornerRadius="8" Padding="20,16">
+                            <StackPanel Spacing="8">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE895;"
+                                              FontSize="14"
+                                              Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                              VerticalAlignment="Center"/>
+                                    <TextBlock Text="Updates"
+                                               Style="{ThemeResource SubtitleTextBlockStyle}"/>
+                                </StackPanel>
+                                <ToggleSwitch Header="Automatically check for updates"
+                                              AutomationProperties.AutomationId="AutomaticallyCheckForUpdatesToggle"
+                                              IsOn="{Binding SettingsViewModel.CheckForUpdates, Mode=TwoWay}"
+                                              OnContent="On"
+                                              OffContent="Off"/>
+                                <TextBlock Text="Checks happen at startup and at most once every 24 hours. Windows notifies you when an update is available."
+                                           Style="{ThemeResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           TextWrapping="Wrap"/>
                             </StackPanel>
                         </Border>
 

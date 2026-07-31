@@ -6,6 +6,7 @@
       "LightsOff": "21:30:00"
     },
     "CloseToTray": true,
-    "StartMinimized": false
+    "StartMinimized": false,
+    "CheckForUpdates": true
   }
 }
