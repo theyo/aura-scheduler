@@ -16,6 +16,7 @@ namespace AuraScheduler.UI.Infrastructure
         private const int WM_DESTROY = 0x0002;
         private const int NIM_ADD = 0;
         private const int NIM_DELETE = 2;
+        private const int NIM_MODIFY = 1;
         private const int NIF_MESSAGE = 0x01;
         private const int NIF_ICON = 0x02;
         private const int NIF_TIP = 0x04;
@@ -106,6 +107,8 @@ namespace AuraScheduler.UI.Infrastructure
         // ── State ────────────────────────────────────────────────────────────────
         private readonly IntPtr _hWnd;
         private readonly IntPtr _hIcon;
+        private IntPtr _hUpdateIcon;
+        private bool _updateAvailable;
         private readonly WndProcDelegate _wndProc; // keep alive
         private readonly List<(string Text, Action Action)> _menuItems = new();
         private bool _disposed;
@@ -139,6 +142,34 @@ namespace AuraScheduler.UI.Infrastructure
 
         public void AddMenuItem(string text, Action action) => _menuItems.Add((text, action));
 
+        public void SetTooltip(string tooltip)
+        {
+            var data = BuildNid(tooltip);
+            Shell_NotifyIcon(NIM_MODIFY, ref data);
+        }
+
+        /// <summary>
+        /// Shows or hides the update badge on the tray icon. The badged icon is generated
+        /// lazily and remains owned by this tray instance until it is disposed.
+        /// </summary>
+        public void SetUpdateAvailable(bool available)
+        {
+            if (_disposed || _updateAvailable == available)
+                return;
+
+            if (available && _hUpdateIcon == IntPtr.Zero)
+            {
+                _hUpdateIcon = AppIcon.CreateUpdateIcon();
+                if (_hUpdateIcon == IntPtr.Zero)
+                    return;
+            }
+
+            _updateAvailable = available;
+            var data = BuildNid(string.Empty);
+            data.uFlags = NIF_ICON;
+            Shell_NotifyIcon(NIM_MODIFY, ref data);
+        }
+
         public void AddSeparator() => _menuItems.Add((string.Empty, null!));
 
         private NOTIFYICONDATA BuildNid(string tooltip) => new()
@@ -148,7 +179,7 @@ namespace AuraScheduler.UI.Infrastructure
             uID = 1,
             uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP,
             uCallbackMessage = WM_TRAY,
-            hIcon = _hIcon,
+            hIcon = _updateAvailable && _hUpdateIcon != IntPtr.Zero ? _hUpdateIcon : _hIcon,
             szTip = tooltip,
         };
 
@@ -169,7 +200,8 @@ namespace AuraScheduler.UI.Infrastructure
 
         private void ShowContextMenu()
         {
-            if (_menuItems.Count == 0) return;
+            if (_menuItems.Count == 0)
+                return;
 
             SetForegroundWindow(_hWnd);
             GetCursorPos(out var pt);
@@ -196,14 +228,22 @@ namespace AuraScheduler.UI.Infrastructure
 
         public void Dispose()
         {
-            if (_disposed) return;
+            if (_disposed)
+                return;
+
             _disposed = true;
 
             var data = BuildNid(string.Empty);
             Shell_NotifyIcon(NIM_DELETE, ref data);
 
-            if (_hWnd != IntPtr.Zero) DestroyWindow(_hWnd);
-            if (_hIcon != IntPtr.Zero) DestroyIcon(_hIcon);
+            if (_hWnd != IntPtr.Zero)
+                DestroyWindow(_hWnd);
+
+            if (_hIcon != IntPtr.Zero)
+                DestroyIcon(_hIcon);
+
+            if (_hUpdateIcon != IntPtr.Zero)
+                DestroyIcon(_hUpdateIcon);
         }
     }
 }

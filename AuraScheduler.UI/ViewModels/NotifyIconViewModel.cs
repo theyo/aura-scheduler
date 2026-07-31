@@ -42,9 +42,12 @@ namespace AuraScheduler.UI
         }
 
         [RelayCommand]
-        public virtual void ExitApplication()
+        public virtual async Task ExitApplication()
         {
-            Application.Current.Exit();
+            if (Application.Current is App app)
+                await app.ExitAsync();
+            else
+                Application.Current.Exit();
         }
 
         private bool CanShowWindow() => !IsWindowVisible;

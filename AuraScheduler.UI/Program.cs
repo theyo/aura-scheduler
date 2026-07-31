@@ -106,6 +106,8 @@ namespace AuraScheduler.UI
             builder.Services.Configure<LightOptions>(builder.Configuration.GetSection(LightOptions.SectionName));
             builder.Services.AddSingleton<AuraInitializationStatus>();
             builder.Services.AddHostedService<AuraScheduleWorker>();
+            builder.Services.AddSingleton<UpdateCheckWorker>();
+            builder.Services.AddSingleton<IHostedService>(services => services.GetRequiredService<UpdateCheckWorker>());
 
             builder.Services.AddSingleton<ISettingsFileProvider>(_ =>
                 new SettingsFileProvider(
@@ -113,6 +115,10 @@ namespace AuraScheduler.UI
                     settingsPath));
 
             builder.Services.AddSingleton<MainWindow>();
+            builder.Services.AddSingleton<IUpdateReleaseClient, GitHubReleaseClient>();
+            builder.Services.AddSingleton<IUpdateInstaller, UpdateInstaller>();
+            builder.Services.AddSingleton<IUpdateVersionProvider, AssemblyVersionProvider>();
+            builder.Services.AddSingleton<IUpdateSchedule, UpdateCheckSchedule>();
             builder.Services.AddSingleton<NotifyIconViewModel>();
             builder.Services.AddSingleton<SettingsViewModel>();
             builder.Services.AddSingleton(activateEvent);

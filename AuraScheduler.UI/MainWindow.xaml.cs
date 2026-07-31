@@ -22,6 +22,12 @@ namespace AuraScheduler.UI
         public ObservableCollection<string>? LogEntries { get; }
         public SettingsViewModel SettingsViewModel { get; }
 
+        /// <summary>
+        /// Raised when the user selects View update in the dashboard notification.
+        /// The event intentionally exposes no release model so the application owns update details and actions.
+        /// </summary>
+        public event EventHandler? UpdateRequested;
+
         public MainWindow(SettingsViewModel viewModel, ILoggerProvider logProvider, IServiceProvider serviceProvider)
         {
             _notifyIconVM = new Lazy<NotifyIconViewModel>(serviceProvider.GetRequiredService<NotifyIconViewModel>);
@@ -79,15 +85,53 @@ namespace AuraScheduler.UI
             // Select Dashboard by default
             NavView.SelectedItem = DashboardItem;
 
-            AppWindow.Closing += (_, args) =>
+            AppWindow.Closing += (sender, args) =>
             {
                 args.Cancel = true;
                 if (SettingsViewModel.CloseToTray)
                     _notifyIconVM.Value.HideWindow();
                 else
-                    Application.Current.Exit();
+                    _ = ((App)Application.Current).ExitAsync();
             };
         }
+
+        /// <summary>
+        /// Shows the dashboard update notification for the supplied version.
+        /// </summary>
+        public void SetUpdateAvailable(string version)
+        {
+            if (string.IsNullOrWhiteSpace(version))
+                throw new ArgumentException("An update version is required.", nameof(version));
+
+            UpdateInfoBar.Title = $"AURA Scheduler v{version} is available";
+            UpdateInfoBar.Message = "A newer version of AURA Scheduler is available.";
+            ViewUpdateButton.Content = "View update";
+            ViewUpdateButton.IsEnabled = true;
+            UpdateInfoBar.IsOpen = true;
+        }
+
+        public void SetUpdateDownloading(string version)
+        {
+            UpdateInfoBar.Title = $"Downloading AURA Scheduler v{version}";
+            UpdateInfoBar.Message = "The update is downloading. The installer will open automatically.";
+            ViewUpdateButton.Content = "Downloading...";
+            ViewUpdateButton.IsEnabled = false;
+            UpdateInfoBar.IsOpen = true;
+        }
+
+        public void SetUpdateInstalling(string version)
+        {
+            UpdateInfoBar.Title = $"Installing AURA Scheduler v{version}";
+            UpdateInfoBar.Message = "Approve the Windows prompt to start the installer.";
+            ViewUpdateButton.Content = "Installing...";
+            ViewUpdateButton.IsEnabled = false;
+            UpdateInfoBar.IsOpen = true;
+        }
+
+        /// <summary>
+        /// Hides the dashboard update notification.
+        /// </summary>
+        public void ClearUpdateAvailable() => UpdateInfoBar.IsOpen = false;
 
         private async Task LoadTitleBarIconAsync()
         {
@@ -130,9 +174,14 @@ namespace AuraScheduler.UI
             SettingsPanel.Visibility = tag == "settings" ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        private void ExitButton_Click(object sender, RoutedEventArgs e)
+        private async void ExitButton_Click(object sender, RoutedEventArgs e)
         {
-            Application.Current.Exit();
+            await ((App)Application.Current).ExitAsync();
+        }
+
+        private void ViewUpdateButton_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateRequested?.Invoke(this, EventArgs.Empty);
         }
     }
 }
