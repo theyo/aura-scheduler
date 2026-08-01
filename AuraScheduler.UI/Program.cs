@@ -116,7 +116,7 @@ namespace AuraScheduler.UI
 
             builder.Services.AddSingleton<MainWindow>();
             builder.Services.AddSingleton<IUpdateReleaseClient, GitHubReleaseClient>();
-            builder.Services.AddSingleton<IUpdateInstaller, UpdateInstaller>();
+            builder.Services.AddSingleton<IUpdateReleaseLauncher, UpdateReleaseLauncher>();
             builder.Services.AddSingleton<IUpdateVersionProvider, AssemblyVersionProvider>();
             builder.Services.AddSingleton<IUpdateSchedule, UpdateCheckSchedule>();
             builder.Services.AddSingleton<NotifyIconViewModel>();

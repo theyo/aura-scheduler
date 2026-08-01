@@ -11,9 +11,9 @@ using Microsoft.Extensions.Options;
 
 namespace AuraScheduler.UI.Infrastructure;
 
-internal sealed record ReleaseInfo(string Version, string Name, string Notes, string Url, string InstallerUrl);
+internal sealed record ReleaseInfo(string Version, string Name, string Notes, string Url);
 
-internal sealed record UpdateReleaseAsset(string Name, string DownloadUrl);
+internal sealed record UpdateReleaseAsset(string Name);
 
 internal sealed record UpdateRelease(string TagName, string Name, string Notes, string Url, bool Draft, bool Prerelease, IReadOnlyList<UpdateReleaseAsset> Assets);
 
@@ -22,10 +22,8 @@ internal interface IUpdateReleaseClient
     Task<UpdateRelease?> GetLatestReleaseAsync(CancellationToken cancellationToken);
 }
 
-internal interface IUpdateInstaller
+internal interface IUpdateReleaseLauncher
 {
-    Task DownloadAndLaunchInstallerAsync(ReleaseInfo release, Action installerLaunching, CancellationToken cancellationToken);
-
     void OpenRelease(ReleaseInfo release);
 }
 
@@ -48,7 +46,7 @@ internal sealed class UpdateCheckWorker : BackgroundService
     internal static readonly TimeSpan AutomaticCheckInterval = TimeSpan.FromHours(24);
 
     private readonly IUpdateReleaseClient _releaseClient;
-    private readonly IUpdateInstaller _installer;
+    private readonly IUpdateReleaseLauncher _releaseLauncher;
     private readonly IUpdateVersionProvider _versionProvider;
     private readonly IUpdateSchedule _schedule;
     private readonly IOptionsMonitor<LightOptions> _optionsMonitor;
@@ -56,10 +54,10 @@ internal sealed class UpdateCheckWorker : BackgroundService
     private readonly SemaphoreSlim _checkGate = new(1, 1);
     private CancellationToken _hostStoppingToken;
 
-    public UpdateCheckWorker(IUpdateReleaseClient releaseClient, IUpdateInstaller installer, IUpdateVersionProvider versionProvider, IUpdateSchedule schedule, IOptionsMonitor<LightOptions> optionsMonitor, ILogger<UpdateCheckWorker> logger)
+    public UpdateCheckWorker(IUpdateReleaseClient releaseClient, IUpdateReleaseLauncher releaseLauncher, IUpdateVersionProvider versionProvider, IUpdateSchedule schedule, IOptionsMonitor<LightOptions> optionsMonitor, ILogger<UpdateCheckWorker> logger)
     {
         _releaseClient = releaseClient;
-        _installer = installer;
+        _releaseLauncher = releaseLauncher;
         _versionProvider = versionProvider;
         _schedule = schedule;
         _optionsMonitor = optionsMonitor;
@@ -92,26 +90,7 @@ internal sealed class UpdateCheckWorker : BackgroundService
         await ExecuteCheckAsync(UpdateCheckKind.Manual, linkedCancellation.Token).ConfigureAwait(false);
     }
 
-    internal async Task<bool> DownloadAndLaunchInstallerAsync(ReleaseInfo release, CancellationToken cancellationToken = default)
-    {
-        Publish(UpdateCheckStatus.Downloading, UpdateCheckKind.Manual, release);
-        try
-        {
-            await _installer.DownloadAndLaunchInstallerAsync(
-                release,
-                () => Publish(UpdateCheckStatus.Installing, UpdateCheckKind.Manual, release),
-                cancellationToken).ConfigureAwait(false);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "The update installer for version {Version} could not be started.", release.Version);
-            Publish(UpdateCheckStatus.Failed, UpdateCheckKind.Manual, release, ex);
-            return false;
-        }
-    }
-
-    internal void OpenRelease(ReleaseInfo release) => _installer.OpenRelease(release);
+    internal void OpenRelease(ReleaseInfo release) => _releaseLauncher.OpenRelease(release);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -231,7 +210,7 @@ internal sealed class UpdateCheckWorker : BackgroundService
 
         _logger.LogInformation("Update available: version {LatestVersion}.", versionText);
 
-        return new ReleaseInfo(versionText, release.Name, release.Notes, release.Url, installer.DownloadUrl);
+        return new ReleaseInfo(versionText, release.Name, release.Notes, release.Url);
     }
 
     private static string NormalizeVersion(string version) =>
@@ -262,10 +241,15 @@ internal sealed class UpdateCheckWorker : BackgroundService
 internal sealed class GitHubReleaseClient : IUpdateReleaseClient
 {
     private const string Repository = "theYo/aura-scheduler";
-    private readonly HttpClient _httpClient = new();
+    private readonly HttpClient _httpClient;
 
-    public GitHubReleaseClient()
+    public GitHubReleaseClient() : this(new HttpClient())
     {
+    }
+
+    internal GitHubReleaseClient(HttpClient httpClient)
+    {
+        _httpClient = httpClient;
         _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("AURA-Scheduler-Update-Checker");
     }
 
@@ -285,7 +269,7 @@ internal sealed class GitHubReleaseClient : IUpdateReleaseClient
             release.Draft,
             release.Prerelease,
             release.Assets
-                .Select(asset => new UpdateReleaseAsset(asset.Name, asset.BrowserDownloadUrl))
+                .Select(asset => new UpdateReleaseAsset(asset.Name))
                 .ToArray());
     }
 
@@ -303,46 +287,23 @@ internal sealed class GitHubReleaseClient : IUpdateReleaseClient
     private sealed class GitHubAssetResponse
     {
         [JsonPropertyName("name")] public string Name { get; set; } = "";
-        [JsonPropertyName("browser_download_url")] public string BrowserDownloadUrl { get; set; } = "";
     }
 }
 
-internal sealed class UpdateInstaller : IUpdateInstaller
+internal sealed class UpdateReleaseLauncher : IUpdateReleaseLauncher
 {
-    private readonly HttpClient _httpClient = new();
-    private readonly ILogger<UpdateInstaller> _logger;
-
-    public UpdateInstaller(ILogger<UpdateInstaller> logger)
+    public void OpenRelease(ReleaseInfo release)
     {
-        _logger = logger;
-    }
-
-    public async Task DownloadAndLaunchInstallerAsync(ReleaseInfo release, Action installerLaunching, CancellationToken cancellationToken)
-    {
-        var path = Path.Combine(Path.GetTempPath(), $"AURAScheduler.Setup.{release.Version}.exe");
-        _logger.LogInformation("Downloading update {Version}.", release.Version);
-        using (var source = await _httpClient.GetStreamAsync(release.InstallerUrl, cancellationToken).ConfigureAwait(false))
-        using (var destination = File.Create(path))
+        if (!Uri.TryCreate(release.Url, UriKind.Absolute, out var releaseUri)
+            || releaseUri.Scheme != Uri.UriSchemeHttps
+            || !releaseUri.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase)
+            || !releaseUri.AbsolutePath.StartsWith("/theYo/aura-scheduler/releases/", StringComparison.OrdinalIgnoreCase))
         {
-            await source.CopyToAsync(destination, cancellationToken).ConfigureAwait(false);
+            throw new InvalidOperationException("The update release URL is not a valid AURA Scheduler GitHub release page.");
         }
 
-        installerLaunching();
-        _logger.LogInformation("Starting the downloaded update installer {InstallerPath}.", path);
-        using var process = Process.Start(new ProcessStartInfo(path)
-        {
-            UseShellExecute = true,
-            Verb = "runas",
-            WorkingDirectory = Path.GetDirectoryName(path)
-        });
-        if (process is null)
-            throw new InvalidOperationException("Windows did not create a process for the update installer.");
-
-        _logger.LogInformation("Update installer started with process ID {ProcessId}.", process.Id);
+        Process.Start(new ProcessStartInfo(releaseUri.AbsoluteUri) { UseShellExecute = true });
     }
-
-    public void OpenRelease(ReleaseInfo release) =>
-        Process.Start(new ProcessStartInfo(release.Url) { UseShellExecute = true });
 }
 
 internal sealed class AssemblyVersionProvider : IUpdateVersionProvider

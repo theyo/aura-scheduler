@@ -1,3 +1,6 @@
+using System.Net;
+using System.Text;
+
 namespace AuraScheduler.UI.Tests.Infrastructure;
 
 [TestClass]
@@ -18,7 +21,6 @@ public sealed class UpdateCheckWorkerTests
         Assert.AreEqual("AURA Scheduler 1.1.0", update.Release.Name);
         Assert.AreEqual("Release notes", update.Release.Notes);
         Assert.AreEqual("https://github.com/theYo/aura-scheduler/releases/tag/v1.1.0", update.Release.Url);
-        Assert.AreEqual("https://downloads.example/setup.exe", update.Release.InstallerUrl);
         Assert.IsNull(update.Error);
     }
 
@@ -131,7 +133,7 @@ public sealed class UpdateCheckWorkerTests
         await worker.CheckNowAsync();
 
         var update = sink.Single(UpdateCheckStatus.UpdateAvailable, UpdateCheckKind.Manual);
-        Assert.AreEqual("https://downloads.example/setup.exe", update.Release!.InstallerUrl);
+        Assert.AreEqual("1.1.0", update.Release!.Version);
     }
 
     [TestMethod]
@@ -335,106 +337,67 @@ public sealed class UpdateCheckWorkerTests
     }
 
     [TestMethod]
-    public async Task DownloadAndLaunchInstallerAsync_WhenDownloadBegins_PublishesDownloadingBeforeInstallerWork()
+    public void OpenRelease_WhenRequested_UsesInjectedReleaseLauncher()
     {
-        var installer = new RecordingInstaller();
-        var sink = new RecordingStateSink();
-        using var worker = CreateWorker(new RecordingReleaseClient(null), currentVersion: "1.0.0", installer: installer);
-        worker.StateChanged += sink.Add;
+        var releaseLauncher = new RecordingReleaseLauncher();
+        using var worker = CreateWorker(new RecordingReleaseClient(null), currentVersion: "1.0.0", releaseLauncher: releaseLauncher);
         var release = CreateReleaseInfo();
 
-        installer.Handler = (_, _, _) =>
-        {
-            Assert.AreEqual(UpdateCheckStatus.Downloading, sink.Snapshot().Last().Status);
-            installer.WorkStarted.TrySetResult(true);
-            return Task.CompletedTask;
-        };
+        worker.OpenRelease(release);
 
-        var result = await worker.DownloadAndLaunchInstallerAsync(release);
-
-        Assert.IsTrue(result);
-        await installer.WorkStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
-        var downloading = sink.Single(UpdateCheckStatus.Downloading, UpdateCheckKind.Manual);
-        Assert.AreSame(release, downloading.Release);
-        Assert.IsNull(downloading.Error);
+        Assert.AreEqual(1, releaseLauncher.CallCount);
+        Assert.AreSame(release, releaseLauncher.Release);
     }
 
     [TestMethod]
-    public async Task DownloadAndLaunchInstallerAsync_WhenInstallerLaunchBegins_PublishesInstallingThroughCallback()
+    public void OpenRelease_WhenUrlIsNotTheProjectGitHubReleasePage_ThrowsInvalidOperationException()
     {
-        var installer = new RecordingInstaller
-        {
-            Handler = (_, installerLaunching, _) =>
-            {
-                installerLaunching();
-                return Task.CompletedTask;
-            },
-        };
-        var sink = new RecordingStateSink();
-        using var worker = CreateWorker(new RecordingReleaseClient(null), currentVersion: "1.0.0", installer: installer);
-        worker.StateChanged += sink.Add;
-        var release = CreateReleaseInfo();
+        var launcher = new UpdateReleaseLauncher();
+        var release = CreateReleaseInfo() with { Url = "https://example.com/releases/v1.1.0" };
 
-        var result = await worker.DownloadAndLaunchInstallerAsync(release);
-
-        Assert.IsTrue(result);
-        var states = sink.Snapshot();
-        Assert.AreEqual(UpdateCheckStatus.Downloading, states[0].Status);
-        Assert.AreEqual(UpdateCheckStatus.Installing, states[1].Status);
-        Assert.AreSame(release, states[1].Release);
-        Assert.IsNull(states[1].Error);
-        Assert.AreSame(release, installer.Release);
-        Assert.IsNotNull(installer.InstallerLaunching);
+        Assert.ThrowsExactly<InvalidOperationException>(() => launcher.OpenRelease(release));
     }
 
     [TestMethod]
-    public async Task DownloadAndLaunchInstallerAsync_WhenInstallerFails_ReturnsFalseAndPublishesFailedWithoutSuccessfulCompletion()
+    public async Task GetLatestReleaseAsync_WhenReleaseHasInstallerAsset_MapsAssetNameFromGitHubResponse()
     {
-        var expected = new InvalidOperationException("Installer launch failed.");
-        var installer = new RecordingInstaller
+        using var httpClient = new HttpClient(new StubHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)
         {
-            Handler = (_, _, _) => Task.FromException(expected),
-        };
-        var sink = new RecordingStateSink();
-        using var worker = CreateWorker(new RecordingReleaseClient(null), currentVersion: "1.0.0", installer: installer);
-        worker.StateChanged += sink.Add;
-        var release = CreateReleaseInfo();
+            Content = new StringContent(
+                """
+                {
+                  "tag_name": "v1.1.0",
+                  "name": "AURA Scheduler 1.1.0",
+                  "body": "Release notes",
+                  "html_url": "https://github.com/theYo/aura-scheduler/releases/tag/v1.1.0",
+                  "draft": false,
+                  "prerelease": false,
+                  "assets": [
+                    {
+                      "name": "AURAScheduler.Setup.exe",
+                      "browser_download_url": "https://downloads.example/setup.exe"
+                    }
+                  ]
+                }
+                """,
+                Encoding.UTF8,
+                "application/json")
+        }));
+        var client = new GitHubReleaseClient(httpClient);
 
-        var result = await worker.DownloadAndLaunchInstallerAsync(release);
+        var release = await client.GetLatestReleaseAsync(CancellationToken.None);
 
-        Assert.IsFalse(result);
-        var states = sink.Snapshot();
-        Assert.AreEqual(UpdateCheckStatus.Downloading, states[0].Status);
-        Assert.AreEqual(UpdateCheckStatus.Failed, states[^1].Status);
-        Assert.AreSame(release, states[^1].Release);
-        Assert.AreSame(expected, states[^1].Error);
-        Assert.DoesNotContain(UpdateCheckStatus.Installing, states.Select(state => state.Status));
+        Assert.IsNotNull(release);
+        Assert.HasCount(1, release.Assets);
+        Assert.AreEqual(UpdateCheckWorker.ExpectedInstallerName, release.Assets[0].Name);
     }
 
-    [TestMethod]
-    public async Task DownloadAndLaunchInstallerAsync_WhenInstallerSucceeds_ReturnsTrueAndUsesInjectedInstallerSeam()
-    {
-        var installer = new RecordingInstaller();
-        var sink = new RecordingStateSink();
-        using var worker = CreateWorker(new RecordingReleaseClient(null), currentVersion: "1.0.0", installer: installer);
-        worker.StateChanged += sink.Add;
-        var release = CreateReleaseInfo();
-
-        var result = await worker.DownloadAndLaunchInstallerAsync(release);
-
-        Assert.IsTrue(result);
-        Assert.AreSame(release, installer.Release);
-        Assert.IsNotNull(installer.InstallerLaunching);
-        Assert.AreEqual(1, installer.CallCount);
-        Assert.AreEqual(UpdateCheckStatus.Downloading, sink.Snapshot()[0].Status);
-    }
-
-    private static UpdateCheckWorker CreateWorker(RecordingReleaseClient client, string currentVersion, RecordingLoggerProvider? logger = null, bool checkForUpdates = true, ManualSchedule? schedule = null, IUpdateInstaller? installer = null)
+    private static UpdateCheckWorker CreateWorker(RecordingReleaseClient client, string currentVersion, RecordingLoggerProvider? logger = null, bool checkForUpdates = true, ManualSchedule? schedule = null, IUpdateReleaseLauncher? releaseLauncher = null)
     {
         logger ??= new RecordingLoggerProvider();
         return new UpdateCheckWorker(
             client,
-            installer ?? new NoOpInstaller(),
+            releaseLauncher ?? new NoOpReleaseLauncher(),
             new FixedVersionProvider(currentVersion),
             schedule ?? new ManualSchedule(),
             new MutableOptionsMonitor(new LightOptions { CheckForUpdates = checkForUpdates }),
@@ -463,7 +426,7 @@ public sealed class UpdateCheckWorkerTests
             draft,
             prerelease,
             includeInstaller
-                ? [new UpdateReleaseAsset(installerName, "https://downloads.example/setup.exe")]
+                ? [new UpdateReleaseAsset(installerName)]
                 : []);
 
     private static ReleaseInfo CreateReleaseInfo() =>
@@ -471,44 +434,32 @@ public sealed class UpdateCheckWorkerTests
             "1.1.0",
             "AURA Scheduler 1.1.0",
             "Release notes",
-            "https://github.com/theYo/aura-scheduler/releases/tag/v1.1.0",
-            "https://downloads.example/setup.exe");
+            "https://github.com/theYo/aura-scheduler/releases/tag/v1.1.0");
 
-    private sealed class NoOpInstaller : IUpdateInstaller
+    private sealed class NoOpReleaseLauncher : IUpdateReleaseLauncher
     {
-        public Task DownloadAndLaunchInstallerAsync(ReleaseInfo release, Action installerLaunching, CancellationToken cancellationToken) =>
-            Task.CompletedTask;
-
         public void OpenRelease(ReleaseInfo release)
         {
         }
     }
 
-    private sealed class RecordingInstaller : IUpdateInstaller
+    private sealed class RecordingReleaseLauncher : IUpdateReleaseLauncher
     {
-        public Func<ReleaseInfo, Action, CancellationToken, Task> Handler { get; set; } =
-            (_, _, _) => Task.CompletedTask;
-
-        public TaskCompletionSource<bool> WorkStarted { get; } =
-            new(TaskCreationOptions.RunContinuationsAsynchronously);
-
         public ReleaseInfo? Release { get; private set; }
-
-        public Action? InstallerLaunching { get; private set; }
 
         public int CallCount { get; private set; }
 
-        public Task DownloadAndLaunchInstallerAsync(ReleaseInfo release, Action installerLaunching, CancellationToken cancellationToken)
-        {
-            Release = release;
-            InstallerLaunching = installerLaunching;
-            CallCount++;
-            return Handler(release, installerLaunching, cancellationToken);
-        }
-
         public void OpenRelease(ReleaseInfo release)
         {
+            Release = release;
+            CallCount++;
         }
+    }
+
+    private sealed class StubHttpMessageHandler(Func<HttpRequestMessage, HttpResponseMessage> handler) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
+            Task.FromResult(handler(request));
     }
 
     private sealed class FixedVersionProvider(string version) : IUpdateVersionProvider

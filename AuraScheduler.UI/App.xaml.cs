@@ -160,26 +160,6 @@ namespace AuraScheduler.UI
                         await HandleUpdateAvailableAsync(mainWindow, state.Release, state.Kind);
                         break;
 
-                    case UpdateCheckStatus.Downloading when state.Release is not null:
-                        mainWindow.SetUpdateDownloading(state.Release.Version);
-                        _trayIcon?.SetTooltip($"AURA Scheduler — Downloading update v{state.Release.Version}");
-                        break;
-
-                    case UpdateCheckStatus.Installing when state.Release is not null:
-                        mainWindow.SetUpdateInstalling(state.Release.Version);
-                        _trayIcon?.SetTooltip($"AURA Scheduler — Installing update v{state.Release.Version}");
-                        break;
-
-                    case UpdateCheckStatus.Failed when state.Release is not null:
-                        mainWindow.SetUpdateAvailable(state.Release.Version);
-                        _trayIcon?.SetTooltip($"AURA Scheduler — Update available: v{state.Release.Version}");
-                        await ShowMessageAsync(
-                            mainWindow,
-                            "Update Installation Failed",
-                            state.Error?.Message ?? "The update installer could not be started.",
-                            "OK");
-                        break;
-
                     case UpdateCheckStatus.Failed when state.Kind == UpdateCheckKind.Manual:
                         await ShowMessageAsync(
                             mainWindow,
@@ -283,7 +263,7 @@ namespace AuraScheduler.UI
                 var notification = new AppNotificationBuilder()
                     .AddArgument("action", "viewUpdate")
                     .AddText($"AURA Scheduler v{release.Version} is available")
-                    .AddText("Review the release notes and choose when to install the update.")
+                    .AddText("Review the release notes and download the update from GitHub.")
                     .BuildNotification();
 
                 AppNotificationManager.Default.Show(notification);
@@ -323,19 +303,30 @@ namespace AuraScheduler.UI
                 var dialog = new ContentDialog
                 {
                     Title = $"AURA Scheduler v{release.Version} is available",
-                    Content = new ScrollViewer
+                    Content = new StackPanel
                     {
-                        MaxHeight = 420,
-                        Content = new TextBlock
+                        Spacing = 16,
+                        Children =
                         {
-                            Text = string.IsNullOrWhiteSpace(release.Notes)
-                                ? "No release notes were provided."
-                                : release.Notes,
-                            TextWrapping = TextWrapping.Wrap
+                            new ScrollViewer
+                            {
+                                MaxHeight = 360,
+                                Content = new TextBlock
+                                {
+                                    Text = string.IsNullOrWhiteSpace(release.Notes)
+                                        ? "No release notes were provided."
+                                        : release.Notes,
+                                    TextWrapping = TextWrapping.Wrap
+                                }
+                            },
+                            new TextBlock
+                            {
+                                Text = "Open the GitHub release page to download and run the installer.",
+                                TextWrapping = TextWrapping.Wrap
+                            }
                         }
                     },
-                    PrimaryButtonText = "Download & Install",
-                    SecondaryButtonText = "View on GitHub",
+                    PrimaryButtonText = "View Release on GitHub",
                     CloseButtonText = "Later",
                     DefaultButton = ContentDialogButton.Primary,
                     XamlRoot = mainWindow.Content?.XamlRoot
@@ -344,15 +335,22 @@ namespace AuraScheduler.UI
                     return;
 
                 var result = await dialog.ShowAsync();
-                if (result == ContentDialogResult.Secondary)
+                if (result == ContentDialogResult.Primary)
                 {
-                    worker.OpenRelease(release);
-                }
-                else if (result == ContentDialogResult.Primary)
-                {
-                    var installerStarted = await worker.DownloadAndLaunchInstallerAsync(release);
-                    if (installerStarted)
-                        await ExitAsync();
+                    try
+                    {
+                        worker.OpenRelease(release);
+                    }
+                    catch (Exception ex)
+                    {
+                        _host.Services.GetRequiredService<ILogger<App>>()
+                            .LogWarning(ex, "The GitHub release page for version {Version} could not be opened.", release.Version);
+                        await ShowMessageAsync(
+                            mainWindow,
+                            "Could Not Open GitHub",
+                            "Open github.com/theYo/aura-scheduler/releases in your browser to download the update.",
+                            "OK");
+                    }
                 }
             }
             finally
