@@ -110,24 +110,6 @@ namespace AuraScheduler.UI
             UpdateInfoBar.IsOpen = true;
         }
 
-        public void SetUpdateDownloading(string version)
-        {
-            UpdateInfoBar.Title = $"Downloading AURA Scheduler v{version}";
-            UpdateInfoBar.Message = "The update is downloading. The installer will open automatically.";
-            ViewUpdateButton.Content = "Downloading...";
-            ViewUpdateButton.IsEnabled = false;
-            UpdateInfoBar.IsOpen = true;
-        }
-
-        public void SetUpdateInstalling(string version)
-        {
-            UpdateInfoBar.Title = $"Installing AURA Scheduler v{version}";
-            UpdateInfoBar.Message = "Approve the Windows prompt to start the installer.";
-            ViewUpdateButton.Content = "Installing...";
-            ViewUpdateButton.IsEnabled = false;
-            UpdateInfoBar.IsOpen = true;
-        }
-
         /// <summary>
         /// Hides the dashboard update notification.
         /// </summary>

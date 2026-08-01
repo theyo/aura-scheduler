@@ -13,8 +13,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Reference Include="Interop.AuraServiceLib">
-	    <HintPath>..\lib\Interop.AuraServiceLib.dll</HintPath>
-	  </Reference>
+		<!-- Design-time only; used COM metadata is embedded so the ASUS interop assembly is not distributed. -->
+		<Reference Include="Interop.AuraServiceLib">
+			<HintPath>..\lib\Interop.AuraServiceLib.dll</HintPath>
+			<EmbedInteropTypes>true</EmbedInteropTypes>
+		</Reference>
 	</ItemGroup>
 </Project>

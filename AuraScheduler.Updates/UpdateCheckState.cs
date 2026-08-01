@@ -17,8 +17,6 @@ internal enum UpdateCheckStatus
     Started,
     NoUpdateAvailable,
     UpdateAvailable,
-    Downloading,
-    Installing,
     Failed,
     Skipped,
 }
