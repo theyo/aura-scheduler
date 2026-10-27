@@ -39,7 +39,7 @@
 		     WindowsAppSdkUndockedRegFreeWinRTInitialize=true signals that WinRT
 		     activation is handled — in our case by the Burn-installed system runtime,
 		     NOT by setting MICROSOFT_WINDOWSAPPRUNTIME_BASE_DIRECTORY in code.
-		     (In SDK 2.1.x the main WindowsAppSDK.targets is empty, so this property
+		     (In SDK 2.x the main WindowsAppSDK.targets is empty, so this property
 		     has no additional build side-effects; it is purely documentary here.)
 
 		     The WINAPPRUNTIME_SELFCONTAINED guard in Program.cs ensures we do NOT set
@@ -94,10 +94,10 @@
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Common" Version="8.4.2" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-		<PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.10" />
-		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.10" />
-		<PackageReference Include="Microsoft.WindowsAppSDK" Version="2.1.3" />
-		<PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2270" IncludeAssets="build" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.14" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.14" />
+		<PackageReference Include="Microsoft.WindowsAppSDK" Version="2.5.1" />
+		<PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2705" IncludeAssets="build" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -18,7 +18,7 @@
 		  Prerequisite check (informational guard rail only).
 
 		  This MSI installs ONLY the application files — it does not install
-		  .NET 10 Desktop Runtime or Windows App Runtime 2.1. The recommended
+		  .NET 10 Desktop Runtime or Windows App Runtime 2.5. The recommended
 		  installer is AURAScheduler.Setup.exe (the Burn bootstrapper, see
 		  Setup\Bundle\Bundle.wxs), which installs both prerequisites
 		  automatically before chaining to this MSI.
@@ -34,13 +34,13 @@
 		  DetectCondition search, where a false negative just causes a
 		  harmless redundant (idempotent) re-install attempt.
 
-		  There is no equivalent check for Windows App Runtime 2.1: it's
+		  There is no equivalent check for Windows App Runtime 2.5: it's
 		  deployed as per-user MSIX packages, not a registry key or Program
 		  Files folder, so there's no reliable existence check available to
 		  an MSI Launch condition (a previous attempt using
 		  HKLM\SOFTWARE\Microsoft\WindowsAppRuntime\2.1 was always false —
 		  that key is never created — which always blocked installs even when
-		  Windows App Runtime 2.1 was present and working).
+		  Windows App Runtime 2.5 was present and working).
 		-->
 		<Property Id="DOTNET10INSTALLED">
 			<DirectorySearch Id="DotNet10DirSearch"

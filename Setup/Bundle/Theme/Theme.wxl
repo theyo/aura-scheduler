@@ -85,11 +85,11 @@
 
   <!-- Added for AURA Scheduler: shown on the Install/welcome page (see
        Theme.xml) so users know up front what this Setup may download. -->
-  <String Id="PrereqInfoText" Value="[WixBundleName] requires .NET 10 Desktop Runtime and Windows App Runtime 2.1.&#xA;&#xA;If either is missing, this Setup will download and install it automatically. This requires an internet connection and may take a few minutes." />
+  <String Id="PrereqInfoText" Value="[WixBundleName] requires .NET 10 Desktop Runtime and Windows App Runtime 2.5.&#xA;&#xA;If either is missing, this Setup will download and install it automatically. This requires an internet connection and may take a few minutes." />
 
   <!-- Added for AURA Scheduler: shown on the Success page after an
        uninstall (see Theme.xml) since .NET 10 Desktop Runtime and Windows
-       App Runtime 2.1 are left installed (Permanent="yes" in Bundle.wxs)
+       App Runtime 2.5 are left installed (Permanent="yes" in Bundle.wxs)
        in case other apps depend on them. -->
-  <String Id="SuccessUninstallPrereqsNoteText" Value=".NET 10 Desktop Runtime was left installed in case other apps use it. If you no longer need it, you can remove it from Settings &gt; Apps &gt; Installed apps.&#xA;&#xA;Windows App Runtime 2.1 was also left installed. It's a shared system component that doesn't appear in the apps list and is managed automatically by Windows, so no action is needed." />
+  <String Id="SuccessUninstallPrereqsNoteText" Value=".NET 10 Desktop Runtime was left installed in case other apps use it. If you no longer need it, you can remove it from Settings &gt; Apps &gt; Installed apps.&#xA;&#xA;Windows App Runtime 2.5 was also left installed. It's a shared system component that doesn't appear in the apps list and is managed automatically by Windows, so no action is needed." />
 </WixLocalization>

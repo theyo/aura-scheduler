@@ -1,4 +1,4 @@
-﻿<Project Sdk="WixToolset.Sdk/7.0.0">
+﻿<Project Sdk="WixToolset.Sdk/7.0.1">
 	<PropertyGroup>
 		<DefineConstants>Version=$(BuildVersion)</DefineConstants>
 		<OutputName>AURAScheduler.$(MSBuildProjectName)</OutputName>
@@ -34,7 +34,7 @@
 		<Compile Include="*.wxs" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="WixToolset.Util.wixext" Version="7.0.0" />
+		<PackageReference Include="WixToolset.Util.wixext" Version="7.0.1" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\AuraScheduler.UI\AuraScheduler.UI.csproj" publish="true" />

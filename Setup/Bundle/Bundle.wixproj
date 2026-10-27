@@ -1,4 +1,4 @@
-<Project Sdk="WixToolset.Sdk/7.0.0">
+<Project Sdk="WixToolset.Sdk/7.0.1">
 	<PropertyGroup>
 		<OutputType>Bundle</OutputType>
 		<DefineConstants>Version=$(BuildVersion)</DefineConstants>
@@ -13,17 +13,17 @@
 		     (the file is written to %USERPROFILE%\.wix\wix7-osmf-eula.txt) -->
 		<AcceptEula>true</AcceptEula>
 		<!-- WIX1161: "DetectCondition or ArpEntry recommended" for the
-		     InstallWinAppRuntime21 ExePackage in Bundle.wxs. Deliberately
+		     InstallWinAppRuntime ExePackage in Bundle.wxs. Deliberately
 		     absent — see the comments on that ExePackage and on the
 		     prerequisite detection above it for why no reliable detection
-		     mechanism exists for Windows App Runtime 2.1
+		     mechanism exists for Windows App Runtime 2.5
 		     (it deploys per-user MSIX packages with no registry/ARP/file
 		     footprint to search for). -->
 		<SuppressSpecificWarnings>1161</SuppressSpecificWarnings>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="WixToolset.BootstrapperApplications.wixext" Version="7.0.0" />
-		<PackageReference Include="WixToolset.Netfx.wixext" Version="7.0.0" />
+		<PackageReference Include="WixToolset.BootstrapperApplications.wixext" Version="7.0.1" />
+		<PackageReference Include="WixToolset.Netfx.wixext" Version="7.0.1" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\Setup.wixproj" />

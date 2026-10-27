@@ -40,7 +40,7 @@
         <Page Name="Install">
             <!-- Prerequisite info, added so users know up front that this
                  Setup may download and install .NET 10 Desktop Runtime
-                 and/or Windows App Runtime 2.1 (see PrereqInfoText in
+                 and/or Windows App Runtime 2.5 (see PrereqInfoText in
                  Theme.wxl). Placed in the space normally occupied by the
                  EULA hyperlink/checkbox below, which stay hidden because
                  Bundle.wxs sets LicenseUrl="". -->
