@@ -8,10 +8,10 @@
 
     Architecture: "exe + msi side by side"
       - AURAScheduler.Setup.exe (this bundle): installs .NET 10 Desktop
-        Runtime and Windows App Runtime 2.1 via the ExePackage entries in
+        Runtime and Windows App Runtime 2.5 via the ExePackage entries in
         the Chain, then installs AURAScheduler.Setup.msi. .NET 10 is
         skipped when a compatible servicing version is already present;
-        Windows App Runtime 2.1 has no detection and always runs (its own
+        Windows App Runtime 2.5 has no detection and always runs (its own
         installer is idempotent — see the comment on that ExePackage).
       - AURAScheduler.Setup.msi: contains ONLY the application files and
         installs no prerequisites. See Package.wxs for the Launch
@@ -64,13 +64,13 @@
 
       <!--
         Unlike .NET 10 above, this one is fetched by a small wrapper script
-        (DownloadAndInstallWinAppRuntime21.cmd) rather than a hash-pinned
-        ExePackagePayload: the aka.ms/windowsappsdk/2.1/2.1.3 link's content
+        (DownloadAndInstallWinAppRuntime.cmd) rather than a hash-pinned
+        ExePackagePayload: the aka.ms/windowsappsdk/2.5/2.5.1 link's content
         has been observed to change size in place (i.e. it's not an
         immutable per-version URL), which would make a pinned Hash go stale
         unpredictably. The script always grabs "latest" from that link and
-        runs it quietly; since 2.1.x is backwards compatible, "latest"
-        satisfies the >= 2.1.3 requirement regardless of which exact build
+        runs it quietly; since 2.x is backwards compatible, "latest"
+        satisfies the >= 2.5.1 requirement regardless of which exact build
         it resolves to.
         Permanent="yes" for the same reason as above.
 
@@ -78,9 +78,9 @@
         there's no reliable existence check for the MSIX-based runtime, so
         Burn always runs this (the underlying installer is idempotent).
       -->
-      <ExePackage Id="InstallWinAppRuntime21"
-                  DisplayName="Windows App Runtime 2.1"
-                  SourceFile="DownloadAndInstallWinAppRuntime21.cmd"
+      <ExePackage Id="InstallWinAppRuntime"
+                  DisplayName="Windows App Runtime 2.5"
+                  SourceFile="DownloadAndInstallWinAppRuntime.cmd"
                   Permanent="yes"
                   Vital="yes" />
 

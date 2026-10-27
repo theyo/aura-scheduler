@@ -9,20 +9,20 @@ Uses the Asus AURA SDK to turn LEDs on/off on a schedule
 
 - Windows 11 (build 22000 or later)
 - .NET 10.0.10 Desktop Runtime (or later) — this is installed automatically by the `AURAScheduler.Setup.exe` bootstrapper if it isn't already present
-- Windows App Runtime 2.1 (or later) — this is always downloaded and installed by the `AURAScheduler.Setup.exe` bootstrapper, even if it is already present
+- Windows App Runtime 2.5 (or later) — this is always downloaded and installed by the `AURAScheduler.Setup.exe` bootstrapper, even if it is already present
 - Asus ARMOURY CRATE (or ASUS AURA) must be installed — this registers the AURA COM service used to control the LEDs
-- An internet connection during installation — `AURAScheduler.Setup.exe` always downloads Windows App Runtime 2.1 (~107 MB), and additionally downloads .NET 10 Desktop Runtime (~57 MB) if it isn't already installed
+- An internet connection during installation — `AURAScheduler.Setup.exe` always downloads Windows App Runtime 2.5 (~115 MB), and additionally downloads .NET 10 Desktop Runtime (~57 MB) if it isn't already installed
 
 The installer is published as two files:
 
-- `AURAScheduler.Setup.exe` — **recommended**. A small (~25 MB) Burn bootstrapper. It downloads and installs .NET 10 Desktop Runtime only if it isn't already present. Windows App Runtime 2.1 is always downloaded and (re-)run, even if already installed — there's no reliable way to detect it ahead of time, but its installer is a safe no-op when everything is already up to date. Either way, this requires an internet connection.
-- `AURAScheduler.Setup.msi` — a small installer containing only AURA Scheduler itself. It does **not** install prerequisites; use it only on machines that already have .NET 10 Desktop Runtime and Windows App Runtime 2.1. If .NET 10 Desktop Runtime is missing, it stops with a message pointing you at `AURAScheduler.Setup.exe` instead (there's no equivalent check for Windows App Runtime 2.1 — see `Setup/Package.wxs` for why).
+- `AURAScheduler.Setup.exe` — **recommended**. A small (~25 MB) Burn bootstrapper. It downloads and installs .NET 10 Desktop Runtime only if it isn't already present. Windows App Runtime 2.5 is always downloaded and (re-)run, even if already installed — there's no reliable way to detect it ahead of time, but its installer is a safe no-op when everything is already up to date. Either way, this requires an internet connection.
+- `AURAScheduler.Setup.msi` — a small installer containing only AURA Scheduler itself. It does **not** install prerequisites; use it only on machines that already have .NET 10 Desktop Runtime and Windows App Runtime 2.5. If .NET 10 Desktop Runtime is missing, it stops with a message pointing you at `AURAScheduler.Setup.exe` instead (there's no equivalent check for Windows App Runtime 2.5 — see `Setup/Package.wxs` for why).
 
 ## Instructions
 
 1. Run `AURAScheduler.Setup.exe` to install
 
-    a. Requires an internet connection: it always downloads and installs Windows App Runtime 2.1 (~107 MB), and also downloads .NET 10 Desktop Runtime (~57 MB) if it isn't already present — this can take a few minutes
+    a. Requires an internet connection: it always downloads and installs Windows App Runtime 2.5 (~115 MB), and also downloads .NET 10 Desktop Runtime (~57 MB) if it isn't already present — this can take a few minutes
 
 1. The application is added to startup and begins running
 1. AURA Scheduler will minimize to the system tray.
@@ -74,7 +74,7 @@ Default Settings:
 Prerequisites:
 
 1. Ensure the Windows Sandbox feature is installed on your machine (press Start and search for `Turn Windows features on or off`)
-1. Ensure the sandbox has internet access — it's a clean machine, so `AURAScheduler.Setup.exe` will download and install both .NET 10 Desktop Runtime and Windows App Runtime 2.1 during this test (no internet access is needed on the host to *build* the installer anymore, since neither runtime is embedded)
+1. Ensure the sandbox has internet access — it's a clean machine, so `AURAScheduler.Setup.exe` will download and install both .NET 10 Desktop Runtime and Windows App Runtime 2.5 during this test (no internet access is needed on the host to *build* the installer anymore, since neither runtime is embedded)
 
 Test the installer:
 
@@ -89,7 +89,7 @@ Test the installer:
     a. Add/Remove Programs
     a. Services
 
-1. Run `AURAScheduler.Setup.exe` and verify that it installs .NET 10 Desktop Runtime, Windows App Runtime 2.1, and AURA Scheduler
+1. Run `AURAScheduler.Setup.exe` and verify that it installs .NET 10 Desktop Runtime, Windows App Runtime 2.5, and AURA Scheduler
 
     a. The application will start, but an error will be logged because the AURA COM service is not registered in the sandbox (ARMOURY CRATE is not installed there)
 
